@@ -12,9 +12,17 @@
                     option(value='') any
             text#loadingText
             div
-                label 查询页数
+                label 查询页数(总共:
+                    span#totalPage 0
+                label )
                 select#firstPages.form-control
-            button#resetData.pull-right reset data
+            .pull-right.inlineBlk-group
+
+                h2.text-danger 结果
+                h4 总视频数:
+                    span#totalNumVideo
+                button#resetData reset data
+
     .well.col-md-12
         .inlineBlk-group#refineQuery
             h2.text-danger 过滤
@@ -37,8 +45,5 @@
 
     .col-md-12
         .form-inline
-            label.badge total video:
-                span#totalNumVideo
-            label.pull-right.badge total Page:
-                span#totalPage
+
         table#ContentTable.borderTable.display(style='width:100%')
