@@ -1,0 +1,44 @@
+.row
+    .well.col-md-12
+        .inlineBlk-group
+            h2.text-danger 查询
+            div
+                label 类别1
+                select#cate1List.form-control
+                    option(value='') any
+            div
+                label 类别2
+                select#cate2List.form-control
+                    option(value='') any
+            text#loadingText
+            div
+                label 查询页数
+                select#firstPages.form-control
+            button#resetData.pull-right reset data
+    .well.col-md-12
+        .inlineBlk-group#refineQuery
+            h2.text-danger 过滤
+            div#queryViewer
+                label 观看人数
+                .inlineBlk-group
+                    input(type='number')
+                    | -
+                    input(type='number')
+            div
+                label 主播
+            div#queryMin
+                label 时长(分钟)
+                .inlineBlk-group
+                    input(type='number')
+                    | -
+                    input(type='number')
+
+
+
+    .col-md-12
+        .form-inline
+            label.badge total video:
+                span#totalNumVideo
+            label.pull-right.badge total Page:
+                span#totalPage
+        table#ContentTable.borderTable.display(style='width:100%')

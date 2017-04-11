@@ -1,0 +1,46 @@
+body {
+    padding: 50px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+    color: #00B7FF;
+}
+
+.borderTable td {
+    padding: 1px;
+    border: solid 1px cadetblue;
+}
+
+.blink {
+    animation-name: blinker;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes blinker {
+    0% {
+        opacity: 1.0;
+    }
+    50% {
+        opacity: 0.0;
+    }
+    100% {
+        opacity: 1.0;
+    }
+}
+
+.inlineBlk-group > * {
+    display: inline-block !important;
+    margin-right: 5px;
+}
+
+#ContentTable thead th {
+    background-color: #2aabd2;
+    text-align: center;
+}
+
+#refineQuery input {
+    width: 50px;
+}
