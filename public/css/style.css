@@ -42,5 +42,9 @@ a {
 }
 
 #refineQuery input {
+    width: 90px;
+}
+
+.width50 {
     width: 50px;
 }

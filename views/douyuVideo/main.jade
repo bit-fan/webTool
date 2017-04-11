@@ -5,45 +5,51 @@
             div
                 label 类别1
                 select#cate1List.form-control
-                    option(value='') any
+                    option(value='') 全部
             div
                 label 类别2
                 select#cate2List.form-control
-                    option(value='') any
-            text#loadingText
+                    option(value='') 全部
             div
                 label 查询页数(总共:
                     span#totalPage 0
                 label )
                 select#firstPages.form-control
+            text#loadingText
+            button#queryNow 搜索
             .pull-right.inlineBlk-group
-
                 h2.text-danger 结果
                 h4 总视频数:
                     span#totalNumVideo
-                button#resetData reset data
+                button#resetData 重置数据
 
     .well.col-md-12
         .inlineBlk-group#refineQuery
             h2.text-danger 过滤
+            div#queryText
+                label 标题
+                input.form-control(type='text')
             div#queryViewer
                 label 观看人数
                 .inlineBlk-group
-                    input(type='number')
+                    input.form-control(type='number')
                     | -
-                    input(type='number')
-            div
-                label 主播
+                    input.form-control(type='number')
             div#queryMin
                 label 时长(分钟)
                 .inlineBlk-group
-                    input(type='number')
+                    input.form-control(type='number')
                     | -
-                    input(type='number')
+                    input.form-control(type='number')
+            div
+                label 主播
+                select#author.form-control
 
+            div#authorList
+                label 选中的主播
+                .inlineBlk-group
 
 
     .col-md-12
-        .form-inline
-
+        label#numDisplayResult
         table#ContentTable.borderTable.display(style='width:100%')

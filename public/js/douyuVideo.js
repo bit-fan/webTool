@@ -1,15 +1,18 @@
 (function () {
     define([], function () {
-        var cate1Val, cate2Val, pageVal, mySkt, loadingPage, totalQueryResult, tbl, filterResult = {
-            minViewer: null, maxViewer: null, minDur: null, maxDur: null, authArr: []
-        };
+        var cate1Val, cate2Val, pageVal, mySkt, authorArr = [],
+            loadingPage, totalQueryResult, tbl, titlePattern, colArr = [],
+            filterResult = {
+                minViewer: null, maxViewer: null, minDur: null, maxDur: null, authArr: []
+            };
 
         const TitleObj = {
             author: "作者",
             video_duration: "时长",
             contents: "内容",
             video_pic: "图",
-            view_num: "观看人数"
+            view_num: "观看人数",
+            title: "标题"
         }
 
         function getMultiPage(countDown, newData) {
@@ -36,7 +39,8 @@
             cate2Val ? sendObj.cate2Id = cate2Val : '';
             pageVal ? sendObj.page = pageVal : 1;
             loadingPage = true;
-            setLoading(true);
+            var pageText = pageVal || '1';
+            setLoading(true, '加载第' + pageText + '页...');
             mySkt.send('getQueryContent', sendObj, resData => {
                 setLoading(false);
                 console.log(resData);
@@ -44,7 +48,7 @@
                 $('#totalNumVideo').text(resData.count);
                 if (type == 'single') {
                     totalQueryResult = resData.list;
-                    var max = Math.min(resData.page_count, 20);
+                    var max = Math.min(resData.page_count, 200);
                     for (let i = 1; i < max; i++) {
                         let opt = $('<option>', {value: i}).text(i);
                         $('#firstPages').append(opt);
@@ -56,12 +60,30 @@
             });
         }
 
-        function setLoading(flag) {
-            $('#loadingText').toggleClass('blink', flag).text(flag ? 'loading...' : '');
+        function setLoading(flag, text) {
+            text = text || 'loading...';
+            $('#loadingText').toggleClass('blink', flag).text(flag ? text : '');
             loadingPage = false;
         }
 
         function filterContent(src) {
+            $('select#author').html('');
+            var temp = {};
+            totalQueryResult.forEach(item => {
+                temp[item.author] ? temp[item.author]++ : temp[item.author] = 1;
+            });
+            $('select#author').append($('<option>').text('全部'));
+            var optionArr = [];
+            for (var key in temp) {
+                var t = $('<option>', {value: key}).text(key + '(' + temp[key] + ')');
+                optionArr.push([t, temp[key]]);
+            }
+            optionArr.sort((a, b) => {
+                return b[1] - a[1];
+            }).forEach(item => {
+                $('select#author').append(item[0]);
+            })
+
             return totalQueryResult.filter(item => {
                 var valid = true;
                 var viewer = parseInt(item.view_num);
@@ -70,39 +92,40 @@
                 else if (filterResult.minViewer && viewer < filterResult.minViewer) valid = false;
                 else if (filterResult.maxDur && dur > filterResult.maxDur) valid = false;
                 else if (filterResult.minDur && dur < filterResult.minDur) valid = false;
+                else if (filterResult.minDur && dur < filterResult.minDur) valid = false;
+                else if (authorArr.length > 0 && authorArr.indexOf(item.author) == -1) valid = false;
+                else if (titlePattern && !titlePattern.test(item.title)) valid = false;
                 return valid
+            }).sort((a, b) => {
+                return a.point_id - b.point_id;
             })
         }
 
         function drawContent() {
             console.log('totalQueryResult', totalQueryResult);
             var data = filterContent(totalQueryResult);
-            if (!data) return;
-            var colArr = [];
-            for (var key in data[0]) {
-                if (['cid1', 'cid2', 'point_id', 'video_str_duration', 'up_id'].indexOf(key) > -1) continue;
-                var obj = {
-                    title: TitleObj[key] || key,
-                    data: key
+            $('label#numDisplayResult').text('结果数量为:' + data.length);
+            if (colArr.length == 0) {
+                for (var key in data[0]) {
+                    if (['cid1', 'cid2', 'point_id', 'video_str_duration', 'up_id'].indexOf(key) > -1) continue;
+                    var obj = {
+                        title: TitleObj[key] || key,
+                        data: key
+                    }
+                    if (key == 'url') {
+                        obj.render = function (a, b, c) {
+                            var link = $('<a>').attr('href', a).text('链接');
+                            return link.prop('outerHTML');
+                        }
+                        obj.sClass = 'width50'
+                    } else if (key == 'video_pic') {
+                        obj.render = function (a, b, c) {
+                            var link = $('<img>', {width: '50px', height: '50px'}).attr('src', a);
+                            return link.prop('outerHTML');
+                        }
+                    }
+                    colArr.push(obj);
                 }
-                if (key == 'url') {
-                    obj.render = function (a, b, c) {
-                        var link = $('<a>').attr('href', a).text('link');
-                        return link.prop('outerHTML');
-                    }
-                } else if (key == 'video_pic') {
-                    obj.render = function (a, b, c) {
-                        var link = $('<img>', {width: '50px', height: '50px'}).attr('src', a);
-                        return link.prop('outerHTML');
-                    }
-                } else if (key == 'video_pic') {
-                    obj.render = function (a, b, c) {
-                        var link = $('<img>', {width: '50px', height: '50px'}).attr('src', a);
-                        return link.prop('outerHTML');
-                    }
-                }
-
-                colArr.push(obj);
             }
             var tableOptions = {
                 data: data,
@@ -112,9 +135,6 @@
                 "paging": false
             }
             console.log(tableOptions, data);
-            if (tbl) {
-                tbl.destroy();
-            }
             tbl = $('#ContentTable').DataTable(tableOptions);
         }
 
@@ -137,8 +157,38 @@
                         getPage('single');
                     }
                 })
+                $('#queryNow').on('click', () => {
+                    getPage('single');
+                    return true;
+                })
+                $('#authorList').on('click', 'a', target => {
+                    var auth = $(event.target).text();
+                    var ind = authorArr.indexOf(auth);
+                    if (ind != -1) {
+                        authorArr.splice(ind, 1);
+                        $(event.target).remove();
+                        console.log('authorArr', authorArr);
+                    }
+                    drawContent();
+
+                })
+                $('select#author').on('change', target => {
+                    var auth = $(event.target).val();
+                    if (auth == '全部')return;
+                    if (auth && authorArr.indexOf(auth) == -1) {
+                        authorArr.push(auth);
+                        console.log('authorArr', authorArr);
+                        $('#authorList').append($('<a>', {style: 'margin-right:5px'}).text(auth));
+                        drawContent();
+                    }
+                })
                 $('#resetData').on('click', function () {
                     totalQueryResult = [];
+                    drawContent();
+                })
+                $('#queryText input').on('blur', target => {
+                    var text = $(event.target).val();
+                    titlePattern = new RegExp(text.split(' ').join('.*'));
                     drawContent();
                 })
                 //filter result
