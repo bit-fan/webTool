@@ -22,30 +22,30 @@
         }
 
         //get multiple pages
-        function getMultiPage(countDown, newData) {
-            pageVal = countDown;
+        function getMultiPage(curPageNum, newData) {
             totalQueryResult = totalQueryResult.concat(newData);
-            if (countDown != 0) {
-                return getPage('simple');
+            if (curPageNum != 0) {
+                return getPage('multi', curPageNum);
             } else {
                 totalQueryResult = totalQueryResult.filter(item => {
                     return item && item.url;
-                })
+                });
                 drawContent();
             }
         }
 
         //get query
-        function getPage(type) {
+        function getPage(type, curPageNum) {
             if (!mySkt || loadingPage) {
                 return setTimeout(function () {
-                    getPage()
+                    getPage(type, curPageNum)
                 }, 200);
             }
             var sendObj = {}
             cate1Val ? sendObj.cate1Id = cate1Val : '';
             cate2Val ? sendObj.cate2Id = cate2Val : '';
-            pageVal ? sendObj.page = pageVal : 1;
+            curPageNum = curPageNum || pageVal || 1;
+            sendObj.page = curPageNum;
             loadingPage = true;
             var pageText = pageVal || '1';
             setLoading(true, '加载第' + pageText + '页...');
@@ -54,16 +54,20 @@
                 console.log(resData);
                 $('#totalPage').text(resData.page_count);
                 $('#totalNumVideo').text(resData.count);
-                if (type == 'single') {
+                if (type == 'simple') {
                     totalQueryResult = resData.list;
+                    let optionNum = Math.min($('#firstPages').children().length, 200);
                     var max = Math.min(resData.page_count, 200);
-                    for (let i = 1; i < max; i++) {
-                        let opt = $('<option>', {value: i}).text(i);
-                        $('#firstPages').append(opt);
+                    if (optionNum != max) {
+                        $('#firstPages').html('');
+                        for (let i = 1; i < max; i++) {
+                            let opt = $('<option>', {value: i}).text(i);
+                            $('#firstPages').append(opt);
+                        }
                     }
                     drawContent();
                 } else {
-                    getMultiPage(--pageVal, resData.list);
+                    getMultiPage(curPageNum - 1, resData.list);
                 }
             });
         }
@@ -177,33 +181,30 @@
                 mySkt = skt;
                 $("input:radio[name ='queryMode']").on('change', event => {
                     queryMode = $("input:radio[name ='queryMode']:checked").val();
-                    drawContent()
+                    drawContent();
                     return true;
                 })
                 $('#douyuVideo select#cate1List').on('change', event => {
                     cate1Val = $(event.currentTarget).val();
-                    getPage('single');
+                    totalQueryResult = [];
+                    // getMultiPage(pageVal, []);
+                    getPage('simple', pageVal);
                 })
                 $('#douyuVideo select#cate2List').on('change', target => {
                     cate2Val = $(event.currentTarget).val();
-                    getPage('single');
+                    totalQueryResult = [];
+                    // getMultiPage(pageVal, []);
+                    getPage('simple', pageVal);
                 })
                 $('#douyuVideo  select#firstPages').on('change', target => {
-                    var pages = $(event.currentTarget).val();
-                    if (pages != 1) {
-                        getMultiPage(pages);
-                    } else {
-                        getPage('single');
-                    }
+                    var a = $(event.currentTarget).val();
+                    pageVal = parseInt(a);
+                    totalQueryResult = [];
+                    getMultiPage(pageVal, []);
                 })
                 $('#queryNow').on('click', () => {
-                    pageVal = parseInt($('#douyuVideo  select#firstPages').val());
                     totalQueryResult = [];
-                    if (pageVal == 1) {
-                        getPage('single');
-                    } else {
-                        getMultiPage(pageVal, []);
-                    }
+                    getMultiPage(pageVal, []);
                     return true;
                 })
                 $('#authorList').on('click', 'a', target => {
@@ -215,7 +216,6 @@
                         console.log('authorArr', authorArr);
                     }
                     drawContent();
-
                 })
                 $('select#author').on('change', target => {
                     var auth = $(event.target).val();
