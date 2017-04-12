@@ -1,7 +1,7 @@
 (function () {
     define([], function () {
         var cate1Val, cate2Val, pageVal, mySkt, authorArr = [],
-            loadingPage, totalQueryResult, tbl,
+            loadingPage, totalQueryResult, dataTbl = null, queryMode = null,
             filterPara = {
                 minViewer: null,
                 maxViewer: null,
@@ -115,6 +115,11 @@
         function drawContent() {
             console.log('totalQueryResult', totalQueryResult);
             var data = filterContent(totalQueryResult);
+            console.log(data.length);
+            if (queryMode != 'normal') {
+                $('label#numDisplayResult').text('结果为:' + (data.length > 0 ? '有' : '无'));
+                return;
+            }
             $('label#numDisplayResult').text('结果数量为:' + data.length);
             if (filterPara.colArr.length == 0) {
                 for (var key in data[0]) {
@@ -125,7 +130,10 @@
                     }
                     if (key == 'video_pic') {
                         obj.render = function (a, b, c) {
-                            var img=$('<img>', {width: '50px', height: '50px'}).addClass('text-center').attr('src', a);
+                            var img = $('<img>', {
+                                width: '50px',
+                                height: '50px'
+                            }).addClass('text-center').attr('src', a);
                             var link = $('<a>').attr('href', c.url).append(img);
                             return link.prop('outerHTML');
                         }
@@ -133,20 +141,33 @@
                     filterPara.colArr.push(obj);
                 }
             }
-            var tableOptions = {
-                data: data,
-                columns: filterPara.colArr,
-                dom: "t",
-                destroy: true,
-                "paging": false
+            if (dataTbl) {
+                dataTbl.clear();
+                if (data) {
+                    data.forEach(function (rowData) {
+                        dataTbl.row.add(rowData);
+                    });
+                }
+                dataTbl.draw();
+            } else {
+                var tableOptions = {
+                    data: data,
+                    columns: filterPara.colArr,
+                    dom: "t",
+                    destroy: true,
+                    "paging": false
+                }
+                console.log(tableOptions, data);
+                dataTbl = $('#ContentTable').DataTable(tableOptions);
             }
-            console.log(tableOptions, data);
-            tbl = $('#ContentTable').DataTable(tableOptions);
         }
 
         return {
             init: function (skt) {
                 mySkt = skt;
+                $("input:radio[name ='queryMode']").on('change', event => {
+                    queryMode = $("input:radio[name ='queryMode']:checked").val();
+                })
                 $('#douyuVideo select#cate1List').on('change', event => {
                     cate1Val = $(event.currentTarget).val();
                     getPage('single');

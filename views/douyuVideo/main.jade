@@ -1,6 +1,13 @@
 .row
     .well.col-md-12
         .inlineBlk-group
+            div
+                label 模式
+                .inlineBlk-group
+                    label 一般
+                        input.pull-left.margin-right-5(type='radio', name='queryMode', value='normal')
+                    label 检索
+                        input.pull-left.margin-right-5(type='radio', name='queryMode', value='query')
             h2.text-danger 查询
             div
                 label 类别1
