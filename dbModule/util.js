@@ -15,8 +15,9 @@ module.exports = {
             para += key + '=' + paraObj[key] + '&'
         }
         var content = '';
+        var request = '';
         if (protocol == 'http') {
-            http.get({
+            request = http.get({
                 'host': addr,
                 'path': para == '?' ? path : path + para
             }, function (resp) {
@@ -30,7 +31,7 @@ module.exports = {
                 });
             });
         } else if (protocol == 'https') {
-            var req = https.get({
+            request = https.get({
                 'host': addr,
                 'path': para == '?' ? path : path + para
             }, function (resp) {
@@ -43,8 +44,11 @@ module.exports = {
                     deferred.resolve(content);
                 });
             });
-            req.end();
         }
+        request.on('error', function (err) {
+            console.log(err);
+            deferred.reject(err);
+        })
         return deferred.promise
     },
 

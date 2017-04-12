@@ -1,7 +1,7 @@
 (function () {
     define([], function () {
-        var cate1Val, cate2Val, pageVal, mySkt, authorArr = [],
-            loadingPage, totalQueryResult, dataTbl = null, queryMode = 'normal',
+        var cate1Val, cate2Val, cid1Obj = {}, cid2Obj = {}, pageVal, mySkt, authorArr = [],
+            loadingPage, totalQueryResult, dataTbl = null, queryMode = 'normal', inited = false,
             filterPara = {
                 minViewer: null,
                 maxViewer: null,
@@ -18,7 +18,9 @@
             contents: "内容",
             video_pic: "图",
             view_num: "观看人数",
-            title: "标题"
+            title: "标题",
+            cid1: "类别1",
+            cid2: "类别2"
         }
 
         //get multiple pages
@@ -36,6 +38,9 @@
 
         //get query
         function getPage(type, curPageNum) {
+            if (!inited) {
+                initPage()
+            }
             if (!mySkt || loadingPage) {
                 return setTimeout(function () {
                     getPage(type, curPageNum)
@@ -47,8 +52,7 @@
             curPageNum = curPageNum || pageVal || 1;
             sendObj.page = curPageNum;
             loadingPage = true;
-            var pageText = pageVal || '1';
-            setLoading(true, '加载第' + pageText + '页...');
+            setLoading(true, '加载第' + curPageNum + '页...');
             mySkt.send('getQueryContent', sendObj, resData => {
                 setLoading(false);
                 console.log(resData);
@@ -69,6 +73,9 @@
                 } else {
                     getMultiPage(curPageNum - 1, resData.list);
                 }
+            }, failData => {
+                console.log(failData);
+                setLoading(true, failData.code || 'Error');
             });
         }
 
@@ -83,6 +90,7 @@
         function filterContent(src) {
             $('select#author').html('');
             var temp = {};
+            totalQueryResult = totalQueryResult || [];
             totalQueryResult.forEach(item => {
                 temp[item.author] ? temp[item.author]++ : temp[item.author] = 1;
             });
@@ -141,24 +149,43 @@
             }
             $('label#numDisplayResult').text('结果数量为:' + data.length);
             if (filterPara.colArr.length == 0) {
+                let ind = 0;
                 for (var key in data[0]) {
-                    if (['cid1', 'cid2', 'point_id', 'video_str_duration', 'up_id', 'url'].indexOf(key) > -1) continue;
+                    ind++;
+                    if (['point_id', 'video_str_duration', 'up_id', 'url'].indexOf(key) > -1) continue;
                     var obj = {
                         title: TitleObj[key] || key,
-                        data: key
+                        data: key,
+                        sClass: 'contentTdWidth'
                     }
                     if (key == 'video_pic') {
                         obj.render = function (a, b, c) {
                             var img = $('<img>', {
-                                width: '50px',
-                                height: '50px'
+                                width: '60px',
+                                height: '60px'
                             }).addClass('text-center').attr('src', a);
                             var link = $('<a>').attr('href', c.url).append(img);
                             return link.prop('outerHTML');
                         }
+                        obj.ord = 5.5;
+                    } else if (key == 'cid1') {
+                        obj.render = function (a, b, c) {
+                            return cid1Obj && cid1Obj[a] ? cid1Obj[a] : a;
+                        }
+                        obj.ord = 0;
+                    } else if (key == 'cid2') {
+                        obj.render = function (a, b, c) {
+                            return cid2Obj && cid2Obj[a] ? cid2Obj[a] : a;
+                        }
+                        obj.ord = 1;
+                    } else {
+                        obj.ord = ind + 1;
                     }
                     filterPara.colArr.push(obj);
                 }
+                filterPara.colArr = filterPara.colArr.sort((a, b) => {
+                    return a.ord - b.ord;
+                })
             }
             if (dataTbl) {
                 redrawTable(data);
@@ -174,6 +201,30 @@
                 $('#ContentTable').empty();
                 dataTbl = $('#ContentTable').DataTable(tableOptions);
             }
+        }
+
+        function initPage() {
+            setLoading(true);
+            mySkt.send('getVideoType', {}, resData => {
+                console.log(resData);
+                setLoading(false);
+                if (resData && resData.cate1 && resData.cate2) {
+                    resData.cate1.forEach(item => {
+                        cid1Obj[item.cate1_id] = item.cate1_name;
+                        var opt = $('<option>', {value: item.cate1_id}).text(item.cate1_name);
+                        $('#douyuVideo select#cate1List').append(opt);
+                    })
+                    resData.cate2.forEach(item => {
+                        cid2Obj[item.cate2_id] = item.cate2_name;
+                        var opt = $('<option>', {value: item.cate2_id}).text(item.cate2_name);
+                        $('#douyuVideo select#cate2List').append(opt);
+                    })
+                    inited = true;
+                }
+            }, failData => {
+                console.log(failData);
+                setLoading(true, failData.code || 'Error');
+            })
         }
 
         return {
@@ -223,7 +274,7 @@
                     if (auth && authorArr.indexOf(auth) == -1) {
                         authorArr.push(auth);
                         console.log('authorArr', authorArr);
-                        $('#authorList').append($('<a>', {style: 'margin-right:5px'}).text(auth));
+                        $('#authorList .inlineBlk-group').append($('<a>', {style: 'margin-right:5px'}).text(auth));
                         drawContent();
                     }
                 })
@@ -253,22 +304,9 @@
                     drawContent();
                 });
 
-                setLoading(true);
+                initPage();
                 //get basic settings
-                skt.send('getVideoType', {}, resData => {
-                    console.log(resData);
-                    setLoading(false);
-                    if (resData && resData.cate1 && resData.cate2) {
-                        resData.cate1.forEach(item => {
-                            var opt = $('<option>', {value: item.cate1_id}).text(item.cate1_name);
-                            $('#douyuVideo select#cate1List').append(opt);
-                        })
-                        resData.cate2.forEach(item => {
-                            var opt = $('<option>', {value: item.cate2_id}).text(item.cate2_name);
-                            $('#douyuVideo select#cate2List').append(opt);
-                        })
-                    }
-                })
+
             }
         };
     });

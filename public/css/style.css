@@ -12,6 +12,11 @@ a {
     border: solid 1px cadetblue;
 }
 
+.contentTdWidth {
+    min-width: 60px;
+    max-width: 40%;
+}
+
 .blink {
     animation-name: blinker;
     animation-duration: 1s;
@@ -39,6 +44,7 @@ a {
 #ContentTable thead th {
     background-color: #2aabd2;
     text-align: center;
+    padding: 5px 0;
 }
 
 #refineQuery input {
