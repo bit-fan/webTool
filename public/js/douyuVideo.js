@@ -1,9 +1,15 @@
 (function () {
     define([], function () {
         var cate1Val, cate2Val, pageVal, mySkt, authorArr = [],
-            loadingPage, totalQueryResult, tbl, titlePattern, colArr = [],
-            filterResult = {
-                minViewer: null, maxViewer: null, minDur: null, maxDur: null, authArr: []
+            loadingPage, totalQueryResult, tbl,
+            filterPara = {
+                minViewer: null,
+                maxViewer: null,
+                minDur: null,
+                maxDur: null,
+                authArr: [],
+                titlePattern: null,
+                colArr: []
             };
 
         const TitleObj = {
@@ -15,6 +21,7 @@
             title: "标题"
         }
 
+        //get multiple pages
         function getMultiPage(countDown, newData) {
             pageVal = countDown;
             totalQueryResult = totalQueryResult.concat(newData);
@@ -28,6 +35,7 @@
             }
         }
 
+        //get query
         function getPage(type) {
             if (!mySkt || loadingPage) {
                 return setTimeout(function () {
@@ -60,12 +68,14 @@
             });
         }
 
+        //update laoding text
         function setLoading(flag, text) {
             text = text || 'loading...';
             $('#loadingText').toggleClass('blink', flag).text(flag ? text : '');
             loadingPage = false;
         }
 
+        //filter table content
         function filterContent(src) {
             $('select#author').html('');
             var temp = {};
@@ -88,48 +98,44 @@
                 var valid = true;
                 var viewer = parseInt(item.view_num);
                 var dur = parseInt(item.video_duration.split(':')[0]);
-                if (filterResult.maxViewer && viewer > filterResult.maxViewer) valid = false;
-                else if (filterResult.minViewer && viewer < filterResult.minViewer) valid = false;
-                else if (filterResult.maxDur && dur > filterResult.maxDur) valid = false;
-                else if (filterResult.minDur && dur < filterResult.minDur) valid = false;
-                else if (filterResult.minDur && dur < filterResult.minDur) valid = false;
+                if (filterPara.maxViewer && viewer > filterPara.maxViewer) valid = false;
+                else if (filterPara.minViewer && viewer < filterPara.minViewer) valid = false;
+                else if (filterPara.maxDur && dur > filterPara.maxDur) valid = false;
+                else if (filterPara.minDur && dur < filterPara.minDur) valid = false;
+                else if (filterPara.minDur && dur < filterPara.minDur) valid = false;
                 else if (authorArr.length > 0 && authorArr.indexOf(item.author) == -1) valid = false;
-                else if (titlePattern && !titlePattern.test(item.title)) valid = false;
+                else if (filterPara.titlePattern && !filterPara.titlePattern.test(item.title)) valid = false;
                 return valid
             }).sort((a, b) => {
                 return a.point_id - b.point_id;
             })
         }
 
+        //draw table
         function drawContent() {
             console.log('totalQueryResult', totalQueryResult);
             var data = filterContent(totalQueryResult);
             $('label#numDisplayResult').text('结果数量为:' + data.length);
-            if (colArr.length == 0) {
+            if (filterPara.colArr.length == 0) {
                 for (var key in data[0]) {
-                    if (['cid1', 'cid2', 'point_id', 'video_str_duration', 'up_id'].indexOf(key) > -1) continue;
+                    if (['cid1', 'cid2', 'point_id', 'video_str_duration', 'up_id', 'url'].indexOf(key) > -1) continue;
                     var obj = {
                         title: TitleObj[key] || key,
                         data: key
                     }
-                    if (key == 'url') {
+                    if (key == 'video_pic') {
                         obj.render = function (a, b, c) {
-                            var link = $('<a>').attr('href', a).text('链接');
-                            return link.prop('outerHTML');
-                        }
-                        obj.sClass = 'width50'
-                    } else if (key == 'video_pic') {
-                        obj.render = function (a, b, c) {
-                            var link = $('<img>', {width: '50px', height: '50px'}).attr('src', a);
+                            var img=$('<img>', {width: '50px', height: '50px'}).addClass('text-center').attr('src', a);
+                            var link = $('<a>').attr('href', c.url).append(img);
                             return link.prop('outerHTML');
                         }
                     }
-                    colArr.push(obj);
+                    filterPara.colArr.push(obj);
                 }
             }
             var tableOptions = {
                 data: data,
-                columns: colArr,
+                columns: filterPara.colArr,
                 dom: "t",
                 destroy: true,
                 "paging": false
@@ -188,7 +194,7 @@
                 })
                 $('#queryText input').on('blur', target => {
                     var text = $(event.target).val();
-                    titlePattern = new RegExp(text.split(' ').join('.*'));
+                    filterPara.titlePattern = new RegExp(text.split(' ').join('.*'));
                     drawContent();
                 })
                 //filter result
@@ -197,19 +203,19 @@
                     var ind = $('#refineQuery input[type=number]').index(this);
                     var val = $(event.currentTarget).val();
                     if (ind == 0) {
-                        filterResult.minViewer = val;
+                        filterPara.minViewer = val;
                     } else if (ind == 1) {
-                        filterResult.maxViewer = val;
+                        filterPara.maxViewer = val;
                     } else if (ind == 2) {
-                        filterResult.minDur = val;
+                        filterPara.minDur = val;
                     } else if (ind == 3) {
-                        filterResult.maxDur = val;
+                        filterPara.maxDur = val;
                     }
                     drawContent();
                 });
 
-
                 setLoading(true);
+                //get basic settings
                 skt.send('getVideoType', {}, resData => {
                     console.log(resData);
                     setLoading(false);

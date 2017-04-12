@@ -19,7 +19,6 @@ var socket = {
     getVideoType: function () {
         return util.getSite('https', 'v.douyu.com', douyu.listPrefix).then(data => {
             var result = local.parseWithProp(data, 'data');
-            // console.log(result);
             return {cate1: result.cate1_arr, cate2: result.cate2_arr}
         })
     },

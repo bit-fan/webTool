@@ -14,7 +14,6 @@ module.exports = {
         for (var key in paraObj) {
             para += key + '=' + paraObj[key] + '&'
         }
-        console.log('para', para);
         var content = '';
         if (protocol == 'http') {
             http.get({
@@ -49,26 +48,6 @@ module.exports = {
         return deferred.promise
     },
 
-    getDota2Video: function (content) {
-        var $ = cheerio.load(content);
-        // console.log($('li a img[title]'));
-        // console.log(content);
-        // console.log($('a[data-vid]').length);
-        $('a[data-vid]').each((i, item) => {
-            // console.log(item);
-            // console.log($(item).attr('title'));
-        })
-
-
-        //test:
-
-        this.getSite('https', 'v.douyu.com', '/video/video/listData?page=3&cate1Id=1&cate2Id=6&action=hot').then(data => {
-            var $1 = cheerio.load(data);
-            $($1).each((a, b) => {
-                console.log(a, $(b));
-            })
-        })
-    },
     getIp: function () {
         var os = require('os');
         var ifaces = os.networkInterfaces();
