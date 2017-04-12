@@ -129,6 +129,7 @@
             console.log('totalQueryResult', totalQueryResult);
             var data = filterContent(totalQueryResult);
             console.log(data.length);
+            console.log('queryMode', queryMode);
             if (queryMode != 'normal') {
                 $('label#numDisplayResult').text('结果为:' + ((data.length == 0) ? '无' : (data.length == 1 ? '1个' : '有')));
                 redrawTable([]);
@@ -166,6 +167,7 @@
                     "paging": false
                 }
                 console.log(tableOptions, data);
+                $('#ContentTable').empty();
                 dataTbl = $('#ContentTable').DataTable(tableOptions);
             }
         }
@@ -195,7 +197,13 @@
                     }
                 })
                 $('#queryNow').on('click', () => {
-                    getPage('single');
+                    pageVal = parseInt($('#douyuVideo  select#firstPages').val());
+                    totalQueryResult = [];
+                    if (pageVal == 1) {
+                        getPage('single');
+                    } else {
+                        getMultiPage(pageVal, []);
+                    }
                     return true;
                 })
                 $('#authorList').on('click', 'a', target => {
@@ -225,7 +233,7 @@
                 })
                 $('#queryText input').on('blur', target => {
                     var text = $(event.target).val();
-                    filterPara.titlePattern = new RegExp(text.split(' ').join('.*'));
+                    filterPara.titlePattern = new RegExp(text.split(' ').join('.*'), 'i');
                     drawContent();
                 })
                 //filter result
