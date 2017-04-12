@@ -5,7 +5,7 @@
                 label 模式
                 .inlineBlk-group
                     label 一般
-                        input.pull-left.margin-right-5(type='radio', name='queryMode', value='normal')
+                        input.pull-left.margin-right-5(type='radio', name='queryMode', value='normal', checked='checked')
                     label 检索
                         input.pull-left.margin-right-5(type='radio', name='queryMode', value='query')
             h2.text-danger 查询
@@ -22,7 +22,7 @@
                     span#totalPage 0
                 label )
                 select#firstPages.form-control
-            text#loadingText
+            text#loadingText.text-danger
             button#queryNow 搜索
             .pull-right.inlineBlk-group
                 h2.text-danger 结果

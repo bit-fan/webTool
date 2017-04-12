@@ -1,7 +1,7 @@
 (function () {
     define([], function () {
         var cate1Val, cate2Val, pageVal, mySkt, authorArr = [],
-            loadingPage, totalQueryResult, dataTbl = null, queryMode = null,
+            loadingPage, totalQueryResult, dataTbl = null, queryMode = 'normal',
             filterPara = {
                 minViewer: null,
                 maxViewer: null,
@@ -111,13 +111,27 @@
             })
         }
 
+        //clearTable
+        function redrawTable(data) {
+            if (!dataTbl)return;
+            dataTbl.clear();
+            if (data) {
+                data.forEach(function (rowData) {
+                    dataTbl.row.add(rowData);
+                });
+            }
+            dataTbl.draw();
+            $('#ContentTable').resize();
+        }
+
         //draw table
         function drawContent() {
             console.log('totalQueryResult', totalQueryResult);
             var data = filterContent(totalQueryResult);
             console.log(data.length);
             if (queryMode != 'normal') {
-                $('label#numDisplayResult').text('结果为:' + (data.length > 0 ? '有' : '无'));
+                $('label#numDisplayResult').text('结果为:' + ((data.length == 0) ? '无' : (data.length == 1 ? '1个' : '有')));
+                redrawTable([]);
                 return;
             }
             $('label#numDisplayResult').text('结果数量为:' + data.length);
@@ -142,13 +156,7 @@
                 }
             }
             if (dataTbl) {
-                dataTbl.clear();
-                if (data) {
-                    data.forEach(function (rowData) {
-                        dataTbl.row.add(rowData);
-                    });
-                }
-                dataTbl.draw();
+                redrawTable(data);
             } else {
                 var tableOptions = {
                     data: data,
@@ -167,6 +175,8 @@
                 mySkt = skt;
                 $("input:radio[name ='queryMode']").on('change', event => {
                     queryMode = $("input:radio[name ='queryMode']:checked").val();
+                    drawContent()
+                    return true;
                 })
                 $('#douyuVideo select#cate1List').on('change', event => {
                     cate1Val = $(event.currentTarget).val();
