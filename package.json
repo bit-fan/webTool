@@ -1,9 +1,9 @@
 {
-  "name": "sitefetcher",
-  "version": "0.0.0",
+  "name": "webTool",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node webTool.js"
   },
   "dependencies": {
     "body-parser": "~1.16.0",
@@ -13,6 +13,7 @@
     "express": "~4.14.1",
     "jade": "~1.11.0",
     "morgan": "~1.7.0",
+    "pm2": "^2.4.4",
     "q": "^1.5.0",
     "serve-favicon": "~2.3.2",
     "socket.io": "^1.7.3"
