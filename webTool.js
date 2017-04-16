@@ -44,7 +44,7 @@ app.use(function (err, req, res, next) {
 });
 
 var debug = require('debug')('sitefetcher:server');
-var http = require('http');
+var https = require('https');
 
 /**
  * Get port from environment and store in Express.
@@ -57,7 +57,7 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+var server = https.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
