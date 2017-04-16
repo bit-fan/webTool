@@ -43,6 +43,14 @@ app.use(function (err, req, res, next) {
     res.render('error');
 });
 
+app.all('*', function (req, res, next) {
+    if (req.headers['x-forwarded-proto'] != 'https')
+        res.redirect('https://' + req.headers.host + req.url)
+    else
+        next()
+    /* Continue to other routes if we're not redirecting */
+});
+
 var debug = require('debug')('webTool:server');
 var http = require('http');
 
