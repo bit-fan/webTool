@@ -43,8 +43,8 @@ app.use(function (err, req, res, next) {
     res.render('error');
 });
 
-var debug = require('debug')('sitefetcher:server');
-var https = require('https');
+var debug = require('debug')('webTool:server');
+var http = require('http');
 
 /**
  * Get port from environment and store in Express.
@@ -57,7 +57,7 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = https.createServer(app);
+var server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
