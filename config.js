@@ -6,6 +6,10 @@ const acer = {
     ip: 'http://localhost',
     port: 5729
 }
+const production = {
+    ip: 'https://webutil.herokuapp.com',
+    port: 80
+}
 
 var env = {
     mode: process.env.NODE_ENV || 'local',
@@ -15,6 +19,8 @@ var env = {
                 return local;
             case 'acer':
                 return acer;
+            case 'production':
+                return production;
         }
     }
 }
