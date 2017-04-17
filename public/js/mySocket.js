@@ -1,6 +1,6 @@
 function mySocket(io, http) {
     this.io = io;
-    this.socket = io.connect(http);
+    this.socket = io.connect()//http);
 }
 mySocket.prototype.send = function (key, data, success, fail) {
     data = data || {};
