@@ -165,7 +165,7 @@
                                 width: '60px',
                                 height: '60px'
                             }).addClass('text-center').attr('src', a);
-                            var link = $('<a>').attr('href', c.url).append(img);
+                            var link = $('<a>').attr('href', c.url).attr('target', "_blank").append(img);
                             return link.prop('outerHTML');
                         }
                         obj.ord = 5.5;
