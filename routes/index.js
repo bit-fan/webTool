@@ -1,9 +1,10 @@
 var express = require('express');
 var router = express.Router();
-var func = require('../dbModule/util')
+var func = require('../dbModule/util');
+const sysConfig = require('../config');
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    res.render('home', {title: 'Express'});
+    res.render('home', {title: 'Express', ip: sysConfig.ip, port: sysConfig.port});
 });
 
 module.exports = router;

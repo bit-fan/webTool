@@ -57,8 +57,8 @@ var http = require('http');
 /**
  * Get port from environment and store in Express.
  */
-var constPara = require('./public/const')
-var port = normalizePort(process.env.PORT || constPara.port);
+var env = require('./config').config();
+var port = normalizePort(process.env.PORT || env.port);
 app.set('port', port);
 
 /**

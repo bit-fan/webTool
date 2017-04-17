@@ -1,6 +1,9 @@
 extends layout
 
 block content
+    script.
+        var serverIP = '#{ip}'
+        var serverPort = '#{port}'
     script(src='js/home.js')
     p Web Tools
     .col-md-3
