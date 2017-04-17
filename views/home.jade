@@ -6,13 +6,13 @@ block content
         var serverPort = '#{port}'
     script(src='js/home.js')
     p Web Tools
-    .col-md-3
+    .col-md-2
         ul#funcCate.nav.nav-pills.nav-stacked
             li(data-toggle='tab', href='#douyuVideo',file='douyuVideo')
                 a 斗鱼视频
             li
                 a other
-    .col-md-9
+    .col-md-10
         div.tab-content
             #douyuVideo.tab-pane.fade
                 include ./douyuVideo/main

@@ -25,7 +25,7 @@ var socket = {
 
     getQueryContent: function (query) {
         query = query || {};
-        query.type = query.type || 'new';
+        query.action = query.action || 'new';
         return util.getSite('https', 'v.douyu.com', douyu.listPrefix, query).then(data => {
             var result = local.parseWithProp(data, 'data');
             return {

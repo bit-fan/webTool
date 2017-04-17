@@ -51,6 +51,7 @@
             cate2Val ? sendObj.cate2Id = cate2Val : '';
             curPageNum = curPageNum || pageVal || 1;
             sendObj.page = curPageNum;
+            sendObj.action = $('#sortBy').val() || 'new';
             loadingPage = true;
             setLoading(true, '加载第' + curPageNum + '页...');
             mySkt.send('getQueryContent', sendObj, resData => {
@@ -118,8 +119,8 @@
                 else if (authorArr.length > 0 && authorArr.indexOf(item.author) == -1) valid = false;
                 else if (filterPara.titlePattern && !filterPara.titlePattern.test(item.title)) valid = false;
                 return valid
-            }).sort((a, b) => {
-                return a.point_id - b.point_id;
+                // }).sort((a, b) => {
+                //     return a.point_id - b.point_id;
             })
         }
 
@@ -152,7 +153,7 @@
                 let ind = 0;
                 for (var key in data[0]) {
                     ind++;
-                    if (['point_id', 'video_str_duration', 'up_id', 'url'].indexOf(key) > -1) continue;
+                    if (['point_id', 'video_str_duration', 'up_id', 'url', 'v_icon_text'].indexOf(key) > -1) continue;
                     var obj = {
                         title: TitleObj[key] || key,
                         data: key,
