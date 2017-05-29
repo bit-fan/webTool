@@ -153,7 +153,7 @@
                 let ind = 0;
                 for (var key in data[0]) {
                     ind++;
-                    if (['point_id', 'video_str_duration', 'up_id', 'url', 'v_icon_text'].indexOf(key) > -1) continue;
+                    if (['point_id', 'video_str_duration', 'up_id', 'url', 'v_icon_text', 'tags', 'is_short', 'topic_id'].indexOf(key) > -1) continue;
                     var obj = {
                         title: TitleObj[key] || key,
                         data: key,
@@ -179,6 +179,24 @@
                             return cid2Obj && cid2Obj[a] ? cid2Obj[a] : a;
                         }
                         obj.ord = 1;
+                    } else if (key == 'ver_pic') {
+                        obj.render = function (a, b, c) {
+                            var img = $('<img>', {
+                                width: '60px',
+                                height: '60px'
+                            }).addClass('text-center').attr('src', a);
+                            return img.prop('outerHTML');
+                        }
+                        obj.ord = 7.5
+                    } else if (key == 'authorIcon') {
+                        obj.render = function (a, b, c) {
+                            var img = $('<img>', {
+                                width: '60px',
+                                height: '60px'
+                            }).addClass('text-center').attr('src', a);
+                            return img.prop('outerHTML');
+                        }
+                        obj.ord = 8.5;
                     } else {
                         obj.ord = ind + 1;
                     }
