@@ -20,7 +20,10 @@
             view_num: "观看人数",
             title: "标题",
             cid1: "类别1",
-            cid2: "类别2"
+            cid2: "类别2",
+            ver_pic: "版本图",
+            topic_title: "题目",
+            authorIcon:"作者头像"
         }
 
         //get multiple pages
