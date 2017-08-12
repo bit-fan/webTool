@@ -25,6 +25,7 @@
             topic_title: "题目",
             authorIcon:"作者头像"
         }
+        const filterCol=['point_id', 'video_str_duration', 'up_id', 'url', 'v_icon_text', 'is_first','tags', 'is_short', 'topic_id'];
 
         //get multiple pages
         function getMultiPage(curPageNum, newData) {
@@ -156,7 +157,7 @@
                 let ind = 0;
                 for (var key in data[0]) {
                     ind++;
-                    if (['point_id', 'video_str_duration', 'up_id', 'url', 'v_icon_text', 'tags', 'is_short', 'topic_id'].indexOf(key) > -1) continue;
+                    if (filterCol.indexOf(key) > -1) continue;
                     var obj = {
                         title: TitleObj[key] || key,
                         data: key,

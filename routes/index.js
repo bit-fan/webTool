@@ -4,7 +4,7 @@ var func = require('../dbModule/util');
 const sysConfig = require('../config').config();
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    res.render('home', {title: 'Express', ip: sysConfig.ip, port: sysConfig.port});
+    res.render('home', {title: 'Web Tool', ip: sysConfig.ip, port: sysConfig.port});
 });
 
 module.exports = router;
