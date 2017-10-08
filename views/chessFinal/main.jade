@@ -10,7 +10,7 @@ link(rel='stylesheet', href='/css/chess.css')
             label 棋子
             select#pieceType.form-control
                 option(value='wiki.svg',selected) 类型1
-                option(value='ps.jpg') 类型2
+                //option(value='ps.jpg') 类型2
         div
             label 模式
             .inlineBlk-group
@@ -43,7 +43,11 @@ link(rel='stylesheet', href='/css/chess.css')
             button#confirm confirm
     .col-md-5#boardDiv
         .row
-            .col-12#piecesList
+            .col-12#piecesListWrapper
+                .inlineBlk-group
+                    div
+                        | Please setup piece
+                    #piecesList
             img#hideboarddiv
             .col-12#chessContainer
                 #chessboarddiv

@@ -2,6 +2,12 @@
     position: relative;
 }
 
+.pickPiece {
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
 #chessboarddiv {
     width: 100%;
     height: 100%;
@@ -10,12 +16,12 @@
 }
 
 .pieceSize {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
 }
 
 .testImg {
-    background-image: url("../src/img/chess/piece/ps/rx.jpg");
+    /*background-image: url("../src/img/chess/piece/wiki/rx.svg");*/
     background-repeat: no-repeat;
     background-size: contain;
     z-index: 10;
