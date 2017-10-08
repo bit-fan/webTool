@@ -1,0 +1,114 @@
+link(rel='stylesheet', href='/css/chess.css')
+.row
+    .col-md-2
+        div
+            label 模式
+            .inlineBlk-group
+                label 连将胜
+                    input.pull-left.margin-right-5(type='radio', name='queryMode', value='normal', checked='checked')
+                label 隔将胜
+                    input.pull-left.margin-right-5(type='radio', name='queryMode', value='query')
+        ul.list-unstyled
+            li
+                button 布局
+            li
+                button 确认
+            li
+                button 重置
+            li
+                button 布局
+        div
+            label 棋盘
+            select#boardType.form-control
+                option(value='0') 类型1
+                option(value='1') 类型2
+        div
+            label top
+                input#top(type='number', style='width:100px')
+        div
+            label bottom
+                input#btm(type='number', style='width:100px')
+        div
+            label left
+                input#left(type='number', style='width:100px')
+        div
+            label right
+                input#right(type='number', style='width:100px')
+        div
+            button#confirm confirm
+    .col-md-5#boardDiv
+        .row
+            .col-12#piecesList
+            img#hideboarddiv
+            .col-12#chessContainer
+                #chessboarddiv
+
+    .col-md-5#stepDiv
+
+
+
+    //.well.col-md-12
+        .inlineBlk-group
+            div
+                label 模式
+                .inlineBlk-group
+                    label 连将胜
+                        input.pull-left.margin-right-5(type='radio', name='queryMode', value='normal', checked='checked')
+                    label 隔将胜
+                        input.pull-left.margin-right-5(type='radio', name='queryMode', value='query')
+            h2.text-danger 查询
+            div
+                label 类别1
+                select#cate1List.form-control
+                    option(value='') 全部
+            div
+                label 类别2
+                select#cate2List.form-control
+                    option(value='') 全部
+            div
+                label 排序
+                select#sortBy.form-control
+                    option(value='new') 最新
+                    option(value='hot') 热度
+                    option(value='num') 人数
+            div
+                label 查询页数(总共:
+                    span#totalPage 0
+                label )
+                select#firstPages.form-control
+            text#loadingText.text-danger
+            button#queryNow 搜索
+            .pull-right.inlineBlk-group
+                h2.text-danger 结果
+                h4 总视频数:
+                    span#totalNumVideo
+                button#resetData 重置数据
+
+    //.well.col-md-12
+        .inlineBlk-group#refineQuery
+            h2.text-danger 过滤
+            div#queryText
+                label 标题
+                input.form-control(type='text', style='width:170px')
+            div#queryViewer
+                label 观看人数
+                .inlineBlk-group
+                    input.form-control(type='number')
+                    | -
+                    input.form-control(type='number')
+            div#queryMin
+                label 时长(分钟)
+                .inlineBlk-group
+                    input.form-control(type='number')
+                    | -
+                    input.form-control(type='number')
+            div
+                label 主播
+                select#author.form-control
+
+            div#authorList
+                label 选中的主播
+                .inlineBlk-group
+    .col-md-12
+        label#numDisplayResult
+        table#ContentTable.borderTable.display(style='width:100%')

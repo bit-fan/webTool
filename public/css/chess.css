@@ -1,0 +1,29 @@
+#chessContainer {
+    position: relative;
+}
+
+#chessboarddiv {
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+.testImg {
+    background-image:url("../src/img/chess/bj.jpg");
+    background-repeat: no-repeat;
+    background-size: contain;
+    z-index: 10;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: solid red 2px;
+    transform: translate(-50%, -50%);
+}
+
+/*#hideboarddiv {*/
+/*opacity:0;*/
+/*position: absolute;*/
+/*width:100%;*/
+/*height:100%;*/
+/*}*/
