@@ -2,6 +2,16 @@ link(rel='stylesheet', href='/css/chess.css')
 .row
     .col-md-2
         div
+            label 棋盘
+            select#boardType.form-control
+                option(value='board0', selected) 类型1
+                option(value='board1') 类型2
+        div
+            label 棋子
+            select#pieceType.form-control
+                option(value='wiki.svg',selected) 类型1
+                option(value='ps.jpg') 类型2
+        div
             label 模式
             .inlineBlk-group
                 label 连将胜
@@ -17,11 +27,6 @@ link(rel='stylesheet', href='/css/chess.css')
                 button 重置
             li
                 button 布局
-        div
-            label 棋盘
-            select#boardType.form-control
-                option(value='0') 类型1
-                option(value='1') 类型2
         div
             label top
                 input#top(type='number', style='width:100px')

@@ -9,15 +9,17 @@
     background-size: 100% 100%;
 }
 
+.pieceSize {
+    width: 40px;
+    height: 40px;
+}
+
 .testImg {
-    background-image:url("../src/img/chess/bj.jpg");
+    background-image: url("../src/img/chess/piece/ps/rx.jpg");
     background-repeat: no-repeat;
     background-size: contain;
     z-index: 10;
     position: absolute;
-    width: 20px;
-    height: 20px;
-    border: solid red 2px;
     transform: translate(-50%, -50%);
 }
 
