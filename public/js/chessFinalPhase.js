@@ -23,7 +23,7 @@
             }
         }
 
-        function addDragEvt(domQuery, startEvt, nextFunc, finalFunc,errFunc) {
+        function addDragEvt(domQuery, startEvt, nextFunc, finalFunc, errFunc) {
 
             const mouseDown = Rx.Observable.create(function (o) {
                 $('body').on('mousedown', domQuery, function (ev) {
@@ -183,7 +183,7 @@
             let row1 = $('<div>').attr('id', 'piecerow1');
             let row2 = $('<div>').attr('id', 'piecerow2');
             let width = $('#piecesListWrapper').width();
-            let finalBoard={};
+            let finalBoard = {};
 
             ['r', 'b'].forEach(color => {
                 let nowDiv = color === "r" ? row1 : row2;
@@ -192,7 +192,10 @@
                         src: baseData[color + piece].img,
                         class: "pieceSize pickPiece"
                     }).attr('pieceName', color + piece);
-                    nowDiv.append(pieceDiv);
+                    let pickPieceCout = $("<span>", {
+                        id: "pickPiece" + color + piece
+                    }).text(baseData[color + piece].maxCount);
+                    nowDiv.append(pieceDiv).append(pickPieceCout);
                 })
             })
             $('#piecesList').html('').append(row1).append(row2);
@@ -204,7 +207,7 @@
                     let img = $('<img>', {
                         width: 50,
                         height: 50
-                    }).addClass('.pieceSize availPiece' + v.col + v.row);
+                    }).addClass('pieceSize availPiece' + v.col + v.row);
                     let newDiv = $('<div>')
                         .attr('col', v.col)
                         .attr('row', v.row)
@@ -215,9 +218,19 @@
                     // changePiece('.test' + v.col + v.row, v.col, v.row, v.availPieceArr, 0);
                 }
             })
-            let piece = null,thisPieceDom=null,targetPos=null;
+            let rect1 = $('.availPiece11').parent().get(0).getBoundingClientRect();
+            let rect2 = $('.availPiece910').parent().get(0).getBoundingClientRect();
+            let unitX = (rect2.right - rect1.left) / 9;
+            let unitY = (rect2.bottom - rect1.top) / 10;
+            let hoverX = 0, hoverY = 0;
+
+            console.log(rect1, rect2);
+
+
+            let piece = null, thisPieceDom = null, targetPos = null;
             addDragEvt('.pickPiece', function (evt) {
-                thisPieceDom=$(evt.target);
+                thisPieceDom = $(evt.target).clone();
+                $('#chessboarddiv').append(thisPieceDom);
                 piece = $(evt.target).attr('pieceName');
                 $('#chessboarddiv .blink').removeClass('blink');
                 if (baseData.availPieceByPiece[piece]) {
@@ -229,13 +242,33 @@
                 }
                 console.log('click', evt)
             }, function (evt) {
-                console.log('move', evt);
-                let a=document.elementFromPoint(evt.clientX-25, evt.clientY-25)
-                let className=evt.target.className;
-                console.log(className,a);
-                $(thisPieceDom).offset({top:evt.clientY-25,left:evt.clientX-25});
-            },function(ev){
-                console.log('final',ev);
+                // console.log('move', evt);
+                $(".fadeback").removeClass('fadeback');
+
+                $(thisPieceDom).offset({top: evt.clientY - 25, left: evt.clientX - 25});
+
+                //get rect if any
+
+                if (evt.clientX > rect1.left && evt.clientX < rect2.right) {
+                    hoverX = parseInt((evt.clientX - rect1.left) / unitX) + 1;
+                } else {
+                    hoverX = 0
+                }
+                if (evt.clientY > rect1.top && evt.clientY < rect2.bottom) {
+                    hoverY = parseInt((evt.clientY - rect1.top) / unitY) + 1;
+                } else {
+                    hoverY = 0
+                }
+                console.log(hoverX, hoverY);
+                if (hoverX && hoverY) {
+                    $('#chessboarddiv .availPiece' + hoverX + hoverY).addClass('fadeback');
+                }
+
+
+            }, function (ev) {
+                console.log('final', ev);
+                $('#chessboarddiv .blink').removeClass('blink');
+
             }, function (evt) {
                 console.log('err', evt)
             });

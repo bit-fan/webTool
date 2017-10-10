@@ -3,7 +3,7 @@
 }
 
 .pickPiece {
-    margin-left: 5px;
+    margin-left: 10px;
     margin-right: 5px;
     margin-bottom: 5px;
     z-index: 20;
@@ -30,12 +30,20 @@
     transform: translate(-50%, -50%);
 }
 
+img:not([src]) {
+    visibility: hidden;
+}
+
 .pieceImg {
     background-repeat: no-repeat;
     background-size: contain;
     z-index: 10;
     position: absolute;
     transform: translate(-50%, -50%);
+}
+
+.fadeback {
+    border: solid 1px red;
 }
 
 /*#hideboarddiv {*/
