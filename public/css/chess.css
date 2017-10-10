@@ -6,6 +6,7 @@
     margin-left: 5px;
     margin-right: 5px;
     margin-bottom: 5px;
+    z-index: 20;
 }
 
 #chessboarddiv {
@@ -22,6 +23,14 @@
 
 .testImg {
     /*background-image: url("../src/img/chess/piece/wiki/rx.svg");*/
+    background-repeat: no-repeat;
+    background-size: contain;
+    z-index: 10;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+.pieceImg {
     background-repeat: no-repeat;
     background-size: contain;
     z-index: 10;
