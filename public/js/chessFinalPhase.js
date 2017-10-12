@@ -1,7 +1,9 @@
 (function () {
     define([], function () {
         const imgBaseDir = '../src/img/chess/';
-        var curBoardTag, curPieceFolder, curPieceExt, baseData = {};
+        var mySkt;
+        var curBoardTag, curPieceFolder, curPieceExt, baseData = {}, finalBoard = {}, mouseDownFlag = false;
+        var dragEvtObj = {};
         const boardObj = {
             board0: {
                 img: "board0.jpg",
@@ -23,51 +25,42 @@
             }
         }
 
-        function addDragEvt(domQuery, startEvt, nextFunc, finalFunc, errFunc) {
-
-            const mouseDown = Rx.Observable.create(function (o) {
-                $('body').on('mousedown', domQuery, function (ev) {
-                    ev.preventDefault();
-                    o.onNext(ev);
-                })
+        function initDrag() {
+            $('body').on('mousedown', function (evt) {
+                console.log('down', evt);
+                let type = $(evt.target).attr('dragType');
+                if (type) {
+                    evt.preventDefault();
+                    dragEvtObj.downFlag = type;
+                    if (dragEvtObj[type] && dragEvtObj[type].start) {
+                        dragEvtObj[type].start(evt);
+                    }
+                }
+            })
+            Rx.Observable.fromEvent(document, "mouseup").subscribe(e => {
+                if (dragEvtObj.downFlag && dragEvtObj[dragEvtObj.downFlag] && dragEvtObj[dragEvtObj.downFlag].final) {
+                    dragEvtObj[dragEvtObj.downFlag].final(e);
+                    dragEvtObj.downFlag = null;
+                }
             });
 
-            const mouseUp = Rx.Observable.create(function (o) {
-                $('body').on('mouseup', function (ev) {
-                    ev.preventDefault();
-                    console.log('mouseup');
-                    o.onNext(ev);
-                    finalFunc(ev);
-                })
-            });
-
-            const body = document.body;
-            // const mouseUp = Rx.Observable.fromEvent(body, 'mouseup');
-            const mouseMove = Rx.Observable.fromEvent(body, 'mousemove');
-
-            mouseDown
-                .map(event => {
-                    startEvt(event);
-                    return mouseMove.takeUntil(mouseUp)
-                })
-                .concatAll()
-                .map(event => {
-                    // console.log('event', event);
-                    // return {x: event.clientX, y: event.clientY}
-                    return event;
-                })
+            Rx.Observable
+                .fromEvent(document, "mousemove").debounce(10)
+                .filter(e => dragEvtObj.downFlag)
                 .subscribe(evt => {
-                    // console.log(dragDOM);
-                    // dragDOM[0].style.left = pos.x + 'px';
-                    // dragDOM[0].style.top = pos.y + 'px';
-                    nextFunc(evt)
-                }, err => {
-                    errFunc(err);
-                }, () => {
-                    console.log('done');
-                })
+                    if (dragEvtObj[dragEvtObj.downFlag].next) {
+                        dragEvtObj[dragEvtObj.downFlag].next(evt)
+                    }
+                });
         }
 
+        function setDragHandler(key, type, func) {
+            if (type != 'start' && type != 'next' && type != 'final') {
+                return;
+            }
+            dragEvtObj[key] = dragEvtObj[key] || {};
+            dragEvtObj[key][type] = func;
+        }
 
         function setBaseData(pieceFolder, pieceExt, boardTag, callback) {
             pieceFolder = pieceFolder || curPieceFolder;
@@ -100,151 +93,114 @@
             let colUnit = (100 - baseData.board.mLeft - baseData.board.mRight) / 8;
             let rowUnit = (100 - baseData.board.mTop - baseData.board.mBtm) / 9;
 
-            let avalPieceObj = {
-                bb: [],
-                bj: [],
-                bs: [],
-                bx: [],
 
-                rb: [],
-                rj: [],
-                rs: [],
-                rx: [],
-            };
             for (let row = 0; row < 10; row++) {
                 for (let col = 0; col < 9; col++) {
-                    let avalPiece = [];
-                    let label = col + 1 + '' + (row + 1);
+                    // let avalPiece = [];
+                    // let label = col + 1 + '' + (row + 1);
+                    //
+                    // //红兵
+                    // if (row < 6 || (row === 6 && col % 2 === 0)) {
+                    //     avalPiece.push('rb');
+                    //     avalPieceObj['rb'].push(label);
+                    // }
+                    // //黑兵
+                    // if (row > 3 || (row === 3 && col % 2 === 0)) {
+                    //     avalPiece.push('bb');
+                    //     avalPieceObj['bb'].push(label);
+                    // }
+                    // //红士
+                    // let testRS = (row - 8) * (row - 8) + (col - 4) * (col - 4);
+                    // if (testRS === 0 || testRS === 2) {
+                    //     avalPiece.push('rs');
+                    //     avalPieceObj['rs'].push(label);
+                    // }
+                    // if (testRS < 2.1) {
+                    //     avalPiece.push('rj');
+                    //     avalPieceObj['rj'].push(label);
+                    // }
+                    // //红象
+                    // let testRX1 = (row - 7) * (row - 7) + (col - 2) * (col - 2);
+                    // let testRX2 = (row - 7) * (row - 7) + (col - 6) * (col - 6);
+                    // if (testRX1 === 4 || testRX2 === 4) {
+                    //     avalPiece.push('rx');
+                    //     avalPieceObj['rx'].push(label);
+                    // }
+                    // //黑士
+                    // let testBS = (row - 1) * (row - 1) + (col - 4) * (col - 4);
+                    // if (testBS === 0 || testBS === 2) {
+                    //     avalPiece.push('bs');
+                    //     avalPieceObj['bs'].push(label);
+                    // }
+                    // if (testBS < 2.1) {
+                    //     avalPiece.push('bj');
+                    //     avalPieceObj['bj'].push(label);
+                    // }
+                    // //黑象
+                    // let testBX1 = (row - 2) * (row - 2) + (col - 2) * (col - 2);
+                    // let testBX2 = (row - 2) * (row - 2) + (col - 6) * (col - 6);
+                    // if (testBX1 === 4 || testBX2 === 4) {
+                    //     avalPiece.push('bx');
+                    //     avalPieceObj['bx'].push(label);
+                    // }
 
-                    //红兵
-                    if (row < 6 || (row === 6 && col % 2 === 0)) {
-                        avalPiece.push('rb');
-                        avalPieceObj['rb'].push(label);
-                    }
-                    //黑兵
-                    if (row > 3 || (row === 3 && col % 2 === 0)) {
-                        avalPiece.push('bb');
-                        avalPieceObj['bb'].push(label);
-                    }
-                    //红士
-                    let testRS = (row - 8) * (row - 8) + (col - 4) * (col - 4);
-                    if (testRS === 0 || testRS === 2) {
-                        avalPiece.push('rs');
-                        avalPieceObj['rs'].push(label);
-                    }
-                    if (testRS < 2.1) {
-                        avalPiece.push('rj');
-                        avalPieceObj['rj'].push(label);
-                    }
-                    //红象
-                    let testRX1 = (row - 7) * (row - 7) + (col - 2) * (col - 2);
-                    let testRX2 = (row - 7) * (row - 7) + (col - 6) * (col - 6);
-                    if (testRX1 === 4 || testRX2 === 4) {
-                        avalPiece.push('rx');
-                        avalPieceObj['rx'].push(label);
-                    }
-                    //黑士
-                    let testBS = (row - 1) * (row - 1) + (col - 4) * (col - 4);
-                    if (testBS === 0 || testBS === 2) {
-                        avalPiece.push('bs');
-                        avalPieceObj['bs'].push(label);
-                    }
-                    if (testBS < 2.1) {
-                        avalPiece.push('bj');
-                        avalPieceObj['bj'].push(label);
-                    }
-                    //黑象
-                    let testBX1 = (row - 2) * (row - 2) + (col - 2) * (col - 2);
-                    let testBX2 = (row - 2) * (row - 2) + (col - 6) * (col - 6);
-                    if (testBX1 === 4 || testBX2 === 4) {
-                        avalPiece.push('bx');
-                        avalPieceObj['bx'].push(label);
-                    }
-
-                    baseData.boardMatrix[(col + 1) + '' + (row + 1)] = {
+                    baseData.boardMatrix[(col + 1) + '' + (row)] = {
                         col: col + 1,
-                        row: row + 1,
+                        row: row,
                         left: baseData.board.mLeft + col * colUnit,
                         top: baseData.board.mTop + row * rowUnit,
-                        availPieceArr: avalPiece,
-
+                        // availPieceArr: avalPiece,
                     }
 
                 }
             }
-            baseData.availPieceByPiece = avalPieceObj;
+            // baseData.availPieceByPiece = avalPieceObj;
             console.log(baseData);
             if (callback) {
                 callback();
             }
         }
 
-        function initSetupBoard() {
-            let row1 = $('<div>').attr('id', 'piecerow1');
-            let row2 = $('<div>').attr('id', 'piecerow2');
-            let width = $('#piecesListWrapper').width();
-            let finalBoard = {};
+        function getPieceImgStr(piece) {
+            return baseData[piece].img;
+        }
 
-            ['r', 'b'].forEach(color => {
-                let nowDiv = color === "r" ? row1 : row2;
-                ['c', 'm', 'p', 'b', 's', 'x', 'j'].forEach(piece => {
-                    let pieceDiv = $("<img>", {
-                        src: baseData[color + piece].img,
-                        class: "pieceSize pickPiece"
-                    }).attr('pieceName', color + piece);
-                    let pickPieceCout = $("<span>", {
-                        id: "pickPiece" + color + piece
-                    }).text(baseData[color + piece].maxCount);
-                    nowDiv.append(pieceDiv).append(pickPieceCout);
-                })
-            })
-            $('#piecesList').html('').append(row1).append(row2);
-
-
-            $.each(baseData.boardMatrix, (k, v) => {
-                if (v.availPieceArr.length > 0) {
-                    console.log('v.col, v.row, v.availPieceArr', v.col, v.row, v.availPieceArr);
-                    let img = $('<img>', {
-                        width: 50,
-                        height: 50
-                    }).addClass('pieceSize availPiece' + v.col + v.row);
-                    let newDiv = $('<div>')
-                        .attr('col', v.col)
-                        .attr('row', v.row)
-                        .addClass("pieceSize pieceImg piececandidate")
-                        .css('top', v.top + '%')
-                        .css('left', v.left + '%').append(img);
-                    $('#chessboarddiv').append(newDiv);
-                    // changePiece('.test' + v.col + v.row, v.col, v.row, v.availPieceArr, 0);
-                }
-            })
-            let rect1 = $('.availPiece11').parent().get(0).getBoundingClientRect();
-            let rect2 = $('.availPiece910').parent().get(0).getBoundingClientRect();
+        function setDragEvt() {
+            let rect1 = $('.boardPos10').get(0).getBoundingClientRect();
+            let rect2 = $('.boardPos99').get(0).getBoundingClientRect();
             let unitX = (rect2.right - rect1.left) / 9;
             let unitY = (rect2.bottom - rect1.top) / 10;
-            let hoverX = 0, hoverY = 0;
+            let hoverX = 0, hoverY = -1;
 
-            console.log(rect1, rect2);
+            let piece = null, thisPieceDom = null, oriDom = null, pickType = null;
 
-
-            let piece = null, thisPieceDom = null, targetPos = null;
-            addDragEvt('.pickPiece', function (evt) {
+            setDragHandler('setupPiece', 'start', function (evt) {
+                if ($(evt.target).closest("#piecesList").length > 0) {
+                    pickType = 'add';
+                } else if ($(evt.target).closest("#chessboarddiv").length > 0) {
+                    pickType = 'move';
+                    oriDom = evt.target;
+                }
                 thisPieceDom = $(evt.target).clone();
                 $('#chessboarddiv').append(thisPieceDom);
                 piece = $(evt.target).attr('pieceName');
-                $('#chessboarddiv .blink').removeClass('blink');
-                if (baseData.availPieceByPiece[piece]) {
-                    baseData.availPieceByPiece[piece].forEach(label => {
-                        $('#chessboarddiv .availPiece' + label).prop('src', baseData[piece].img).addClass('blink');
-                    })
-                } else {
-                    //blink all
-                }
-                console.log('click', evt)
-            }, function (evt) {
-                // console.log('move', evt);
-                $(".fadeback").removeClass('fadeback');
-
+                // $('#chessboarddiv .blink').removeClass('blink');
+                // if (baseData.availPieceByPiece[piece]) {
+                //     baseData.availPieceByPiece[piece].forEach(label => {
+                //         if (finalBoard[label]) {
+                //
+                //         } else {
+                //             $('#chessboarddiv .availPiece' + label)
+                //                 .attr('src', baseData[piece].img)
+                //                 .addClass('blink');
+                //         }
+                //     })
+                // } else {
+                //     //blink all
+                // }
+                // console.log('click', evt)
+            })
+            setDragHandler('setupPiece', 'next', function (evt) {
                 $(thisPieceDom).offset({top: evt.clientY - 25, left: evt.clientX - 25});
 
                 //get rect if any
@@ -255,24 +211,104 @@
                     hoverX = 0
                 }
                 if (evt.clientY > rect1.top && evt.clientY < rect2.bottom) {
-                    hoverY = parseInt((evt.clientY - rect1.top) / unitY) + 1;
+                    hoverY = parseInt((evt.clientY - rect1.top) / unitY);
                 } else {
-                    hoverY = 0
+                    hoverY = -1
                 }
-                console.log(hoverX, hoverY);
-                if (hoverX && hoverY) {
-                    $('#chessboarddiv .availPiece' + hoverX + hoverY).addClass('fadeback');
+                // console.log(hoverX, hoverY);
+                $('#chessboarddiv .fadeback').removeClass('fadeback');
+                if (hoverX && hoverY > -1) {
+                    $('#chessboarddiv .boardPos' + hoverX + hoverY).addClass('fadeback');
                 }
-
-
-            }, function (ev) {
-                console.log('final', ev);
-                $('#chessboarddiv .blink').removeClass('blink');
-
-            }, function (evt) {
-                console.log('err', evt)
             });
+            setDragHandler('setupPiece', 'final', function (ev) {
+                if (hoverX && hoverY > -1 && !finalBoard[hoverX + '' + hoverY]) {
+                    if (pickType == 'add') {
+                        let availableCount = parseInt($('#pickPiece' + piece).text());
+                        if (availableCount > 0) {
+                            finalBoard[hoverX + '' + hoverY] = piece;
+                            $('#pickPiece' + piece).text(availableCount - 1);
+                        }
+                    } else if (pickType == 'move') {
+                        $(oriDom).removeAttr('src').removeClass('pickPiece');
+                        let srcX = $(oriDom).parent().attr('col');
+                        let srcY = $(oriDom).parent().attr('row');
+                        delete finalBoard[srcX + '' + srcY];
+                        finalBoard[hoverX + '' + hoverY] = piece;
+                    }
+                    $("#chessboarddiv .boardPos" + hoverX + hoverY).find('img')
+                        .attr('dragtype', 'setupPiece')
+                        .attr('src', getPieceImgStr(piece))
+                        .attr('pieceName', piece)
+                        .addClass('pickPiece');
+                }
+                // $("#chessboarddiv .piececandidate").each(function () {
+                //     let x = $(this).attr('col');
+                //     let y = $(this).attr('row');
+                //     let isSet = finalBoard[x + '' + y] || null;
+                //     console.log('set', isSet);
+                //     if (isSet) {
+                //         $(this).find('img').removeClass('fadeback').removeClass('blink').attr('src', baseData[isSet].img)
+                //     }
+                //     else {
+                //         $(this).find('img').removeClass('fadeback').removeClass('blink').removeAttr('src');
+                //     }
+                // })
+                $('#chessboarddiv .fadeback').removeClass('fadeback');
+                $(thisPieceDom).remove();
+                console.log('final', finalBoard);
+                mySkt.send('chessValidateBoard', finalBoard, resData => {
+                    console.log('res', resData);
+                }, failData => {
+                    console.log(failData);
+                    // setLoading(true, failData.code || 'Error');
+                })
+            })
 
+        }
+
+        function resetBoard() {
+            $('#chessboarddiv').find('img').each(function () {
+                console.log('$(this)', $(this));
+                $(this).parent().empty().append('<img class="pieceSize">');
+            });
+            finalBoard = {};
+            let row1 = $('<div>').attr('id', 'piecerow1');
+            let row2 = $('<div>').attr('id', 'piecerow2');
+
+            ['r', 'b'].forEach(color => {
+                let nowDiv = color === "r" ? row1 : row2;
+                ['c', 'm', 'p', 'b', 's', 'x', 'j'].forEach(piece => {
+                    let pieceDiv = $("<img>", {
+                        src: getPieceImgStr(color + piece),
+                        class: "pieceSize pickPiece"
+                    }).attr('pieceName', color + piece).attr('dragType', 'setupPiece');
+                    let pickPieceCout = $("<span>", {
+                        id: "pickPiece" + color + piece
+                    }).text(baseData[color + piece].maxCount);
+                    nowDiv.append(pieceDiv).append(pickPieceCout);
+                })
+            })
+            $('#piecesList').html('').append(row1).append(row2);
+        }
+
+        function initSetupBoard() {
+            resetBoard();
+
+            $.each(baseData.boardMatrix, (k, v) => {
+                console.log('v.col, v.row, v.availPieceArr', v.col, v.row, v.availPieceArr);
+                let img = $('<img>').addClass('pieceSize');
+                let newDiv = $('<div>')
+                    .attr('col', v.col)
+                    .attr('row', v.row)
+                    .addClass("pieceSize pieceImg boardPos" + v.col + v.row)
+                    .css('top', v.top + '%')
+                    .css('left', v.left + '%').append(img);
+                $('#chessboarddiv').append(newDiv);
+                // changePiece('.test' + v.col + v.row, v.col, v.row, v.availPieceArr, 0);
+
+            })
+            setDragEvt();
         }
 
         function drawBoard() {
@@ -284,6 +320,14 @@
             // testPiece();
         }
 
+        function submitBoard(){
+            mySkt.send('chessStartBoard', finalBoard, resData => {
+                console.log('res', resData);
+            }, failData => {
+                console.log(failData);
+                // setLoading(true, failData.code || 'Error');
+            })
+        }
         function testPos(mTop, mBtm, mLeft, mRight) {
             $('.testImg').remove();
             let wStep = (100 - mLeft - mRight) / 8;
@@ -355,6 +399,7 @@
         return {
 
             init: function (skt) {
+                mySkt = skt;
                 $('select#boardType').on('change', target => {
                     console.log('board change');
                     curBoardTag = $('select#boardType').val();
@@ -374,12 +419,20 @@
                 $('#btnSetupBoard').on('click', () => {
                     initSetupBoard();
                 });
+                $('#btnResetBoard').on('click', () => {
+                    resetBoard();
+                })
+                $('#btnSubmitBoard').on('click', () => {
+                    submitBoard();
+                })
+
+                submitBoard
                 $('#confirm').on('click', function () {
                     testPos(parseInt($('#top').val()), parseInt($('#btm').val()), parseInt($('#left').val()), parseInt($('#right').val()));
                 })
                 $('#pieceType').trigger('change');
                 $('#boardType').trigger('change');
-
+                initDrag();
                 // initPage();
                 //get basic settings
 
