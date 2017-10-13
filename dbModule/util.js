@@ -77,5 +77,15 @@ module.exports = {
                 ++alias;
             });
         });
+    },
+    chunkStr(str, len){
+        let newA = Array.from(str).reduce((ar, it, i) => {
+            const ix = Math.floor(i / len);
+            ar[ix] = ar[ix] || "";
+            ar[ix] += it;
+            return ar.map(i => parseInt(i));
+        }, []);
+        console.log(newA);
+        return newA;
     }
 }

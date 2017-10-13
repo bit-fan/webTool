@@ -14,14 +14,89 @@ const piexeAvailMapObj = {
     rj: [49, 48, 47, 59, 58, 57, 69, 68, 67],
 }
 
+const boardObj = {
+    bb: [],
+    bc: [],
+    bj: [],
+    bm: [],
+    bp: [],
+    bs: [],
+    bx: [],
+
+    rb: [],
+    rc: [],
+    rj: [],
+    rm: [],
+    rp: [],
+    rs: [],
+    rx: []
+}
 
 var local = {
-    parseWithProp: function (src, key) {
-        if (!src)return '';
-        var obj = JSON.parse(src);
-        return obj && obj[key] ? obj[key] : {}
+    parseStrToBoard(str){
+        //车2马2炮2兵5将1士2象2
+        let pos = util.chunkStr(str, 2);
+        if (pos.length != 32) {
+            return {valid: false, data: {}};
+        }
+        return {
+            valid: true, data: {
+                bb: [pos[6], pos[7], pos[8], pos[9], pos[10]],
+                bc: [pos[0], pos[1]],
+                bj: [pos[11]],
+                bm: [pos[2], pos[3]],
+                bp: [pos[4], pos[5]],
+                bs: [pos[12], pos[13]],
+                bx: [pos[14], pos[15]],
+
+                rb: [pos[22], pos[23], pos[24], pos[25], pos[26]],
+                rc: [pos[16], pos[17]],
+                rj: [pos[27]],
+                rm: [pos[18], pos[19]],
+                rp: [pos[20], pos[21]],
+                rs: [pos[28], pos[29]],
+                rx: [pos[30], pos[31]]
+            }
+        };
     },
-    getHorseNextPos(board, curPos){
+    parseBoardToStr(obj){
+        function concat(src, key, size) {
+            if (size == 0) {
+                return src;
+            }
+            let item = (obj[key] && obj[key].length + 1 > size) ? obj[key][size - 1] : '00';
+            // console.log(item);
+            return concat(src += item, key, size - 1);
+        }
+
+        let str = '';
+
+        str = concat(str, 'rc', 2);
+        str = concat(str, 'rm', 2);
+        str = concat(str, 'rp', 2);
+        str = concat(str, 'rb', 5);
+        str = concat(str, 'rj', 1);
+        str = concat(str, 'rs', 2);
+        str = concat(str, 'rx', 2);
+
+        str = concat(str, 'bc', 2);
+        str = concat(str, 'bm', 2);
+        str = concat(str, 'bp', 2);
+        str = concat(str, 'bb', 5);
+        str = concat(str, 'bj', 1);
+        str = concat(str, 'bs', 2);
+        str = concat(str, 'bx', 2);
+
+        console.log(str);
+        if (str.length == 64) {
+            return {valid: true, str: str};
+        } else {
+            return {valid: false, str: ''}
+        }
+    },
+    getHorseNextPos
+        (board, curPos)
+    {
         let cC = curPos % 10, cR = parseInt(curPos / 10);
         let finalArr = [];
         if (!board.matrix[cC - 1 + '' + cR]) {
@@ -41,8 +116,10 @@ var local = {
         }).map(arr => {
             return arr[0] * 10 + arr[1]
         });
-    },
-    getBishopNextPos(board, curPos){
+    }
+    ,
+    getBishopNextPos(board, curPos)
+    {
         let cC = curPos % 10, cR = parseInt(curPos / 10);
         let finalArr = [];
         if (!board.matrix[cC - 1 + '' + (cR - 1)]) {
@@ -65,8 +142,10 @@ var local = {
         }).map(arr => {
             return arr[0] * 10 + arr[1]
         });
-    },
-    parseBoard(srcObj, step){
+    }
+    ,
+    parseBoard(srcObj, step)
+    {
         let board = {matrix: {}, piece: {}, step: step, status: ''};
         for (let key in srcObj) {
             let pieceName = srcObj[key], pos = parseInt(key);
@@ -76,14 +155,20 @@ var local = {
             board.matrix[pos] = pieceName;
         }
 
-    },
-    isRedChecking(board){
+    }
+    ,
+    isRedChecking(board)
+    {
 
-    },
-    isBlackChecking(board){
+    }
+    ,
+    isBlackChecking(board)
+    {
 
-    },
-    getAllNextCheckingBoard(board){
+    }
+    ,
+    getAllNextCheckingBoard(board)
+    {
         return [];
     }
 }
@@ -91,6 +176,7 @@ var socket = {
     chessValidateBoard: function (req) {
         let reqObj = req || {};
         let errorObj = {}, result = true;
+        let parseObj = JSON.parse(JSON.stringify(boardObj));
         console.log(reqObj);
         for (let key in reqObj) {
             let pieceName = reqObj[key], pos = parseInt(key), isValid = true;
@@ -108,8 +194,14 @@ var socket = {
             if (!isValid) {
                 result = false;
                 errorObj[key] = pieceName;
+                parseObj[pieceName] = parseObj[pieceName] || [];
+                parseObj[pieceName].push(key);
+            } else {
+                parseObj[pieceName] = parseObj[pieceName] || [];
+                parseObj[pieceName].push(key);
             }
         }
+        console.log('parse', local.parseBoardToStr(parseObj));
 
         return {result: result, data: errorObj};
     },

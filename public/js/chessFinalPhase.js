@@ -40,8 +40,8 @@
             Rx.Observable.fromEvent(document, "mouseup").subscribe(e => {
                 if (dragEvtObj.downFlag && dragEvtObj[dragEvtObj.downFlag] && dragEvtObj[dragEvtObj.downFlag].final) {
                     dragEvtObj[dragEvtObj.downFlag].final(e);
-                    dragEvtObj.downFlag = null;
                 }
+                dragEvtObj.downFlag = null;
             });
 
             Rx.Observable
