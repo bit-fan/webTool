@@ -159,16 +159,17 @@ var self = module.exports = {
                 let pieceName = pieceNameList[i];
                 let count = pieceInfoObj[pieceName].maxCount;
                 let newStr = (pieceObj[pieceName] || '0000').concat("0000000000000").slice(0, 2 * count);
-                console.log('newStr', pieceName, newStr);
+                // console.log('newStr', pieceName, newStr);
                 boardKey += newStr;
             }
         }
         let posArr = self.getPosArrFromKey(boardKey, 2);
         if (allValid) {
             let meet = self.boardUtil('between', posArr, posArr[15], posArr[31]);
-            if (meet) {
+            if (meet.length == 0) {
                 allValid = false;
-                errorObj.invalidPos.push(posArr[15]).push(posArr[31]);
+                errorObj.invalidPos.push(posArr[15]);
+                errorObj.invalidPos.push(posArr[31]);
             }
         }
 
@@ -179,13 +180,13 @@ var self = module.exports = {
         }
     },
     getAllNextCheckingBoard(posArr, side){
-        let nextboardObj = {};
         let nextStepArr = [];
         let offset = side === 'r' ? 0 : 16
-        for (let i = offset; i < 15 + offset; i++) {
+        for (let j = offset; j < 16 + offset; j++) {
             let newBoardKeys = [];
+            let i = j - offset;
             if (i == 0 || i == 1) {
-                newBoardKeys = self.getCastleNextPos(posArr, posArr[i]);
+                newBoardKeys = self.getCastleNextPos(posArr, posArr[j]);
             }
             // if (i == 2 || i == 3) {
             //     newBoardKeys = self.getKnightNextPos(posArr, posArr[i]);
@@ -205,9 +206,45 @@ var self = module.exports = {
             nextStepArr = nextStepArr.concat(newBoardKeys);
         }
         return nextStepArr.filter(posArr => {
-            console.log('nextPos', posArr.join());
+            // console.log('nextPos', posArr.join(''));
             // let rCheck= self.isChecking('r', posArr);
             return self.isChecking(side, posArr) && !self.isChecking(side === 'r' ? 'b' : 'r', posArr);
+        });
+    },
+    getAllNextEscapingBoard(posArr, side){
+        let nextStepArr = [];
+        let offset = side === 'r' ? 0 : 16
+        for (let j = offset; j < 16 + offset; j++) {
+            let newBoardKeys = [];
+            let i = j - offset;
+            if (i == 0 || i == 1) {
+                newBoardKeys = self.getCastleNextPos(posArr, posArr[j]);
+            }
+            // if (i == 2 || i == 3) {
+            //     newBoardKeys = self.getKnightNextPos(posArr, posArr[i]);
+            // }
+            // if (i == 4 || i == 5) {
+            //     newBoardKeys = self.getCannonNextPos(posArr, posArr[i]);
+            // }
+            // if (i > 5 || i < 11) {
+            //     newBoardKeys = self.getPawnNextPos(posArr, posArr[i]);
+            // }
+            // if (i == 11 || i == 12) {
+            //     newBoardKeys = self.getAdvisoryNextPos(posArr, posArr[i]);
+            // }
+            // if (i == 13 || i == 14) {
+            //     newBoardKeys = self.getBishopNextPos(posArr, posArr[i]);
+            // }
+            if (i == 15) {
+                newBoardKeys = self.getMarshalNextPos(posArr, posArr[j]);
+            }
+            nextStepArr = nextStepArr.concat(newBoardKeys);
+        }
+        return nextStepArr.filter(posArr => {
+            // console.log('nextPos', posArr.join(''));
+            // let rCheck= self.isChecking('r', posArr);
+            let check = self.isChecking(side === 'r' ? 'b' : 'r', posArr)
+            return !check;
         });
     },
 
@@ -277,8 +314,12 @@ var self = module.exports = {
 
     },
     getNewArrAfterMoving(oriArr, pos1, pos2){
-        let idx = oriArr.indexOf(pos1);
         let newArr = Array.from(oriArr);
+        let del = oriArr.indexOf(pos2);
+        if (del != -1) {
+            newArr.splice(del, 1, '00');
+        }
+        let idx = oriArr.indexOf(pos1);
         newArr.splice(idx, 1, pos2);
         return newArr;
     },
@@ -286,12 +327,12 @@ var self = module.exports = {
         let jPos = side == 'r' ? posArr[31] : posArr[15];
         let jPosX = parseInt(jPos[0]), jPosY = parseInt(jPos[1]);
         let offset = side == 'r' ? 0 : 16;
-        if (self.boardUtil('between', posArr, posArr[15], posArr[31]) === []) {
+        if (self.boardUtil('between', posArr, posArr[15], posArr[31]).length===0) {
             return true;
         }
-        console.log('checking check', posArr.join());
+        // console.log('checking check', posArr.join(''));
         for (let i = 0; i < 11; i++) {
-            console.log('cur', i, posArr[i + offset]);
+            // console.log('cur', i, posArr[i + offset]);
             if (posArr[i + offset] === '00') {
                 continue;
             }
@@ -354,4 +395,30 @@ var self = module.exports = {
             return self.getNewArrAfterMoving(pieceArr, curPos, pos);
         });
     },
+    getMarshalNextPos(pieceArr, pos){
+        let p = self.getNumPosFromStr(pos);
+        let side = p.y < 3 ? 'r' : 'b';
+        let piece = p.y < 3 ? 'bj' : 'rj';
+        let new1 = piexeAllowPosObj[piece].filter(newPos => {
+            let p1 = self.getNumPosFromStr(newPos.toString());
+            if (self.boardUtil('side', pieceArr, '' + p1.x + p1.y) == p1) {
+                return false;
+            }
+            if ((p1.x - p.x) * (p1.x - p.x) + (p1.y - p.y) * (p1.y - p.y) != 1) {
+                return false;
+            }
+            return true;
+        })
+        let new2 = new1.map(newPos => {
+            return self.getNewArrAfterMoving(pieceArr, pos, newPos.toString());
+        });
+        return new2;
+
+    },
+    getNumPosFromStr(txt){
+        return {
+            x: parseInt(txt[0]),
+            y: parseInt(txt[1])
+        }
+    }
 }

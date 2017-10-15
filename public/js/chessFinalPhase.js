@@ -326,6 +326,7 @@
         function submitBoard() {
             mySkt.send('chessStartBoard', finalBoardKey, resData => {
                 console.log('res', resData);
+                displayInfo('solution',resData);
             }, failData => {
                 console.log(failData);
                 // setLoading(true, failData.code || 'Error');
@@ -350,6 +351,9 @@
                 } else {
                     $('#boardPieceQtyValidText').html('0');
                 }
+
+            } else if(type=='solution'){
+                
 
             }
         }

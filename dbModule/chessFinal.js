@@ -204,53 +204,91 @@ var local = {
             if (solObj[boardKey].step == step) {
                 foundBoard = true;
                 solObj[boardKey].posArr = solObj[boardKey].posArr || Chess.getPosArrFromKey(boardKey);
+                solObj[boardKey].nextAllKey = [];
+                solObj[boardKey].nextWinKey = {};
+                solObj[boardKey].nextLoseKey = {};
                 if (step % 2 == 0) {
                     nextboardArr = Chess.getAllNextCheckingBoard(solObj[boardKey].posArr, 'r');
                 } else {
                     nextboardArr = Chess.getAllNextEscapingBoard(solObj[boardKey].posArr, 'b');
                 }
-                nextboardArr.forEach(board => {
-                    solObj[board.boardKey] = {
-                        piece: board.piece,
-                        from: boardKey,
-                        stepId: step + 1,
-                        status: board.status
-                    }
-                });
-                if (nextboardArr.length == 0) {
-                    solObj[boardKey].status = "dead";
-                } else {
-                    solObj[boardKey].nextKeyArr = nextboardArr.map(item => item.boardKey);
-                }
+                let hasNextKey = false;
+                for (let i = 0; i < nextboardArr.length; i++) {
+                    let newKey = nextboardArr[i].join('');
+                    if (!solObj[newKey]) {
+                        solObj[newKey] = {
+                            posArr: nextboardArr[i],
+                            from: boardKey,
+                            step: step + 1
+                        }
+                        solObj[boardKey].nextAllKey.push(newKey);
+                        hasNextKey = true;
+                    } else {
 
+                    }
+                }
+                if (!hasNextKey) {
+                    solObj[boardKey].status = (step % 2 === 0) ? 'bWin' : 'rWin';
+                }
             }
         }
         if (foundBoard) {
-            return local.getSolution(solObj, step + 1)
+            return local.getSolution(solObj, step + 1);
         } else {
-            return local.minifySol(solObj, step);
-        }
-
-    },
-    minifySol(solObj, curStep){
-        if (curStep == 0) {
             return solObj;
-        } else {
-            //simpl
-            return local.minifySol(solObj, curStep - 1);
         }
     },
-    isRedChecking(board, piecesObj)
-    {
 
+    simplifySol(solObj){
+        let maxStep = 0;
+        let startKey = 0;
+        for (let key in solObj) {
+            if (solObj[key].step > maxStep) {
+                maxStep = solObj[key].step
+            }
+            if (solObj[key].step == 0) {
+                startKey = key;
+            }
+        }
+        console.log(maxStep);
+        for (let curStep = maxStep; curStep > 0; curStep--) {
+            let curRound = curStep % 2 === 0 ? 'r' : 'b';
+            let oppoRound = curStep % 2 === 0 ? 'b' : 'r';
+            for (let key in solObj) {
+                let thisObj = solObj[key];
+                if (thisObj.step == curStep) {
+                    let fromObj = solObj[thisObj.from];
+                    let curStatus = thisObj.status ? thisObj.status.toString() : '';
+                    if (curStatus === curRound + 'Win') {
+                        fromObj.nextLoseKey[key] = curStep;
+                        fromObj.maxLose = fromObj.maxLose || -1;
+                        fromObj.maxLose = Math.max(fromObj.maxLose, curStep);
+                    } else if (curStatus === oppoRound + 'Win') {
+                        fromObj.nextWinKey[key] = curStep;
+                        fromObj.minWin = fromObj.minWin || 9999999;
+                        fromObj.minWin = Math.min(fromObj.minWin, curStep);
+                    } else if (thisObj.minWin) {
+                        fromObj.nextLoseKey[key] = thisObj.minWin;
+                        fromObj.maxLose = fromObj.maxLose || -1;
+                        fromObj.maxLose = Math.max(fromObj.maxLose, thisObj.minWin);
+                    } else if (thisObj.maxLose) {
+                        fromObj.nextWinKey[key] = thisObj.maxLose;
+                        fromObj.minWin = fromObj.minWin || 9999999;
+                        fromObj.minWin = Math.min(fromObj.minWin, thisObj.maxLose);
+                        // } else {
+                        //     fromObj.nextLoseKey[key] = thisObj.maxLose;
+                        //     fromObj.maxLose = fromObj.maxLose || -1;
+                        //     fromObj.maxLose = Math.max(fromObj.maxLose, thisObj.maxLose);
+                        //
+                        //     fromObj.nextWinKey[key] = thisObj.minWin;
+                        //     fromObj.minWin = fromObj.minWin || 9999999;
+                        //     fromObj.minWin = Math.min(fromObj.minWin, thisObj.minWin);
+                    }
+                }
+            }
+        }
+        return {startKey: startKey, data: solObj};
     },
-    isBlackChecking(board, piecesObj)
-    {
-
-    },
-    getAllNextEscapingBoard(boardKey, piecesObj){
-
-    }
 }
 var socket = {
     chessValidateBoard: function (req) {
@@ -265,18 +303,17 @@ var socket = {
 
         let solObj = {};
         solObj[reqKey] = {
-            posArr: Chess.getPosArrFromKey(boardKey),
-            nextBoardArr: [],
+            posArr: Chess.getPosArrFromKey(reqKey),
             step: 0,
-            from: null,
-            result: 'working',//'done','nosolution'
+            from: null
         }
         if (Chess.isChecking('b', solObj[reqKey].posArr)) {
             return 'b is checking';
         } else {
             solObj = local.getSolution(solObj, 0);
         }
-        return solObj;
+        console.log('--------------------------', solObj);
+        return local.simplifySol(solObj);
     }
 }
 module.exports = {func: local, socket: socket}
