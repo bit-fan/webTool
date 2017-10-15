@@ -1,6 +1,6 @@
 link(rel='stylesheet', href='/css/chess.css')
 .row
-    .col-md-2
+    #leftPanel.col-md-2
         div
             label 棋盘
             select#boardType.form-control
@@ -18,7 +18,7 @@ link(rel='stylesheet', href='/css/chess.css')
                     input.pull-left.margin-right-5(type='radio', name='queryMode', value='normal', checked='checked')
                 label 隔将胜
                     input.pull-left.margin-right-5(type='radio', name='queryMode', value='query')
-        ul.list-unstyled
+        ul#boardFuncList.list-unstyled
             li
                 button#btnSetupBoard 布局
             li
@@ -52,7 +52,24 @@ link(rel='stylesheet', href='/css/chess.css')
             .col-12#chessContainer
                 #chessboarddiv
 
-    .col-md-5#stepDiv
+    .col-md-5#infoDiv
+        #validCheckResult.infoType.collapse
+            p
+                h3 棋局&nbsp;&nbsp;&nbsp;
+                span#boardValidText
+            p
+                | 位置重复&nbsp;&nbsp;&nbsp;
+                span#boardDuplicateValidText
+            p
+                | 非法棋子&nbsp;&nbsp;&nbsp;
+                span#boardPieceNameValidText
+            p
+                | 非法位置&nbsp;&nbsp;&nbsp;
+                span#boardPosValidText
+            p
+                | 错误数量&nbsp;&nbsp;&nbsp;
+                span#boardPieceQtyValidText
+
 #pieceCandicateDiv
     img.pieceSize.pickPiece
     span

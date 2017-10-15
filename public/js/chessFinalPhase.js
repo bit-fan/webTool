@@ -2,7 +2,8 @@
     define([], function () {
         const imgBaseDir = '../src/img/chess/';
         var mySkt;
-        var curBoardTag, curPieceFolder, curPieceExt, baseData = {}, finalBoard = {}, mouseDownFlag = false;
+        var curBoardTag, curPieceFolder, curPieceExt, baseData = {}, finalBoard = {},
+            mouseDownFlag = false, finalBoardKey = '';
         var dragEvtObj = {};
         const boardObj = {
             board0: {
@@ -259,6 +260,8 @@
                 console.log('final', finalBoard);
                 mySkt.send('chessValidateBoard', finalBoard, resData => {
                     console.log('res', resData);
+                    finalBoardKey=resData.boardKey;
+                    displayInfo('validCheck', resData);
                 }, failData => {
                     console.log(failData);
                     // setLoading(true, failData.code || 'Error');
@@ -320,14 +323,37 @@
             // testPiece();
         }
 
-        function submitBoard(){
-            mySkt.send('chessStartBoard', finalBoard, resData => {
+        function submitBoard() {
+            mySkt.send('chessStartBoard', finalBoardKey, resData => {
                 console.log('res', resData);
             }, failData => {
                 console.log(failData);
                 // setLoading(true, failData.code || 'Error');
             })
         }
+
+        function displayInfo(type, srcObj) {
+            if (type == "validCheck") {
+                $('#validCheckResult').removeClass('collapse');
+                $('#boardValidText').html(srcObj.isValid ? "合法" : "非法");
+                $('#boardDuplicateValidText').html(srcObj.error.duplicatePos.length);
+                $('#boardPosValidText').html(srcObj.error.invalidPos.length);
+                $('#boardPieceNameValidText').html(srcObj.error.invalidPiece.length);
+                if (srcObj.error.invalidQty.length > 0) {
+                    $('#boardPieceQtyValidText').html('');
+                    srcObj.error.invalidQty.forEach(name => {
+                        $('#boardPieceQtyValidText').append($('<img>', {
+                            src: getPieceImgStr(name),
+                            class: 'pieceSize'
+                        }));
+                    })
+                } else {
+                    $('#boardPieceQtyValidText').html('0');
+                }
+
+            }
+        }
+
         function testPos(mTop, mBtm, mLeft, mRight) {
             $('.testImg').remove();
             let wStep = (100 - mLeft - mRight) / 8;
