@@ -424,10 +424,23 @@ var self = module.exports = {
         }
     },
     getMoveName(key1, key2){
+        let diffPos = [];
+        for (let i = 1; i < key1.length; i = i + 2) {
+            let str1 = key1[i] + key1[i + 1];
+            let str2 = key2[i] + key2[i + 1];
+            if (str1 == '00' || str2 == '00') {
+                continue;
+            }
 
-        return 'haha';
-        for (let i = 0; i < key1.length; i++) {
-
+            if (str1 != str2) {
+                diffPos.push((i - 1) / 2);
+                diffPos.push(str1);
+                diffPos.push(str2);
+            }
         }
+        console.log(key1, '&', key2, '&', diffPos);
+        let pieceName = (diffPos[0] > 15 ? 'b' : 'r') + piecePosName[diffPos[0]];
+        console.log(pieceName, diffPos)
+        return 'haha';
     }
 }

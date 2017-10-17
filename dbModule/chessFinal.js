@@ -248,7 +248,6 @@ var local = {
             }
             checkKey.splice(0, 1);
             while (checkNowKey.length > 0) {
-                console.log('checking', checkNowKey[0]);
                 let thisKeyObj = solObj.boardList[checkNowKey[0]];
                 let thisRound = checkNowKey[0][0];
                 let oppoRound = thisRound == 'r' ? 'b' : 'r';
