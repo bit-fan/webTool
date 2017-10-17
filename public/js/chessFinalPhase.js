@@ -456,7 +456,7 @@
                     submitBoard();
                 })
 
-                submitBoard
+                // submitBoard
                 $('#confirm').on('click', function () {
                     testPos(parseInt($('#top').val()), parseInt($('#btm').val()), parseInt($('#left').val()), parseInt($('#right').val()));
                 })

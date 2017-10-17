@@ -196,98 +196,144 @@ var local = {
         }
 
     },
-    getSolution(solObj, step){
-        console.log('solObj in step', step, solObj);
-        let foundBoard = false;
-        for (let boardKey in solObj) {
-            let nextboardArr = [];
-            if (solObj[boardKey].step == step) {
-                foundBoard = true;
-                solObj[boardKey].posArr = solObj[boardKey].posArr || Chess.getPosArrFromKey(boardKey);
-                solObj[boardKey].nextAllKey = [];
-                solObj[boardKey].nextWinKey = {};
-                solObj[boardKey].nextLoseKey = {};
-                if (step % 2 == 0) {
-                    nextboardArr = Chess.getAllNextCheckingBoard(solObj[boardKey].posArr, 'r');
-                } else {
-                    nextboardArr = Chess.getAllNextEscapingBoard(solObj[boardKey].posArr, 'b');
-                }
-                let hasNextKey = false;
-                for (let i = 0; i < nextboardArr.length; i++) {
-                    let newKey = nextboardArr[i].join('');
-                    if (!solObj[newKey]) {
-                        solObj[newKey] = {
-                            posArr: nextboardArr[i],
-                            from: boardKey,
-                            step: step + 1
-                        }
-                        solObj[boardKey].nextAllKey.push(newKey);
-                        hasNextKey = true;
-                    } else {
-
-                    }
-                }
-                if (!hasNextKey) {
-                    solObj[boardKey].status = (step % 2 === 0) ? 'bWin' : 'rWin';
-                }
-            }
-        }
-        if (foundBoard) {
-            return local.getSolution(solObj, step + 1);
-        } else {
+    getFromObj(obj, curKey){
+        return obj[obj[curKey].from];
+    },
+    getSolution(solObj, step, checkKey){
+        if (checkKey.length == 0) {
             return solObj;
         }
+        let checkNowKey = [], nextCheckKey = [];
+        while (checkKey.length > 0) {
+
+            let thisBoardKey = checkKey[0], curRound = thisBoardKey[0];
+            let thisBoardObj = solObj.boardList[thisBoardKey];
+            let nextboardArr = [];
+            if (thisBoardKey.startsWith('r')) {
+                nextboardArr = Chess.getAllNextCheckingBoard(solObj.boardList[thisBoardKey].posArr, 'r');
+            } else {
+                nextboardArr = Chess.getAllNextEscapingBoard(solObj.boardList[thisBoardKey].posArr, 'b');
+            }
+            thisBoardObj.nextListed = true;
+
+            if (nextboardArr.length === 0) {
+                if (curRound == 'r') {
+                    thisBoardObj.status = 'bLastWin';
+                    thisBoardObj.minWin = 1;
+                } else {
+                    thisBoardObj.status = 'rLastWin';
+                    thisBoardObj.maxLose = 1;
+                }
+                checkNowKey = checkNowKey.concat(thisBoardObj.from);
+            } else {
+                nextboardArr.forEach(posArr => {
+                    let newKey = (curRound == 'r' ? 'b' : 'r') + posArr.join('');
+                    if (solObj.boardList[newKey]) {
+                        solObj.boardList[newKey].from.push(thisBoardKey);
+                    } else {
+                        solObj.boardList[newKey] = {
+                            posArr: posArr,
+                            from: [thisBoardKey],
+                            step: thisBoardObj.step + 1,
+                            nextListed: false,
+                            nextAllKey: [],
+                            nextWinKey: [],
+                            nextLoseKey: []
+                        }
+                        nextCheckKey.push(newKey)
+                    }
+                    solObj.boardList[thisBoardKey].nextAllKey.push(newKey);
+
+                })
+            }
+            checkKey.splice(0, 1);
+            while (checkNowKey.length > 0) {
+                console.log('checking', checkNowKey[0]);
+                let thisKeyObj = solObj.boardList[checkNowKey[0]];
+                let thisRound = checkNowKey[0][0];
+                let oppoRound = thisRound == 'r' ? 'b' : 'r';
+                let newNextAllKey = [];
+                let hasChange = false;
+                thisKeyObj.nextAllKey.forEach(childKey => {
+                    let childObj = solObj.boardList[childKey];
+                    let childStatus = childObj.status;
+                    if (childStatus && childStatus[0] === thisRound) {
+                        if (childStatus === thisRound + 'LastWin') {
+                            thisKeyObj.nextWinKey.push(childKey + '#' + 1);
+                        } else {
+                            thisKeyObj.nextWinKey.push(childKey + '#' + (1 + childObj.maxLose));
+                        }
+                        thisKeyObj.status = thisRound + 'Win';
+                        thisKeyObj.minWin = thisKeyObj.minWin || 9999999999999;
+                        thisKeyObj.minWin = Math.min(thisKeyObj.minWin, childObj.maxLose);
+                        hasChange = true;
+                    } else if (childStatus && childStatus[0] === oppoRound) {
+                        if (childStatus === oppoRound + 'LastWin') {
+                            thisKeyObj.nextLoseKey.push(childKey + '#' + 1);
+                        } else {
+                            thisKeyObj.nextLoseKey.push(childKey + '#' + (1 + childObj.minWin));
+                        }
+                        thisKeyObj.maxLose = thisKeyObj.maxLose || -1;
+                        thisKeyObj.maxLose = Math.max(thisKeyObj.maxLose, childObj.minWin);
+                        hasChange = true;
+                    } else {
+                        newNextAllKey.push(childKey);
+                    }
+                })
+                thisKeyObj.nextAllKey = newNextAllKey;
+                if (thisKeyObj.nextWinKey.length >= solObj.maxNumSolution) {
+                    solObj.winList.push(checkNowKey[0]);
+                }
+                if (thisKeyObj.nextAllKey.length == 0 && thisKeyObj.nextWinKey.length == 0) {
+
+                    thisKeyObj.maxLose = thisKeyObj.nextLoseKey.map(key => {
+                        let arr = key.split('#');
+                        return parseInt(arr[1]);
+                    }).reduce((cur, prev) => {
+                        return prev > cur ? prev : cur;
+                    })
+                    thisKeyObj.status = oppoRound + 'Win';
+                    hasChange = true;
+                }
+                if (hasChange) {
+                    checkNowKey = checkNowKey.concat(thisKeyObj.from);
+
+                }
+                checkNowKey.shift();
+            }
+        }
+        return local.getSolution(solObj, step + 1, nextCheckKey);
     },
 
     simplifySol(solObj){
-        let maxStep = 0;
-        let startKey = 0;
-        for (let key in solObj) {
-            if (solObj[key].step > maxStep) {
-                maxStep = solObj[key].step
-            }
-            if (solObj[key].step == 0) {
-                startKey = key;
-            }
+        let finalObj = {};
+        let toAddKeys = [solObj.startKey];
+        while (toAddKeys.length > 0) {
+            let newKey = toAddKeys.shift();
+            let newObj = solObj.boardList[newKey];
+
+            let keyNameToAdd = newObj.nextWinKey.length > 0 ? 'nextWinKey' : 'nextLoseKey'
+            let newKeyArr = newObj[keyNameToAdd].map(rawKey => {
+                return rawKey.split('#');
+            }).sort((a, b) => {
+                return a[1] < b[1]
+            }).slice(-solObj.maxNumSolution);
+            let addObj = {
+                nextSteps: []
+            };
+            newKeyArr.forEach(keyWin => {
+                toAddKeys.push(keyWin[0]);
+                addObj.nextSteps.push({
+                    key: keyWin[0],
+                    name: Chess.getMoveName(newKey, keyWin[0]),
+                    step: keyWin[1]
+                })
+            })
+
+            finalObj[newKey] = addObj;
         }
-        console.log(maxStep);
-        for (let curStep = maxStep; curStep > 0; curStep--) {
-            let curRound = curStep % 2 === 0 ? 'r' : 'b';
-            let oppoRound = curStep % 2 === 0 ? 'b' : 'r';
-            for (let key in solObj) {
-                let thisObj = solObj[key];
-                if (thisObj.step == curStep) {
-                    let fromObj = solObj[thisObj.from];
-                    let curStatus = thisObj.status ? thisObj.status.toString() : '';
-                    if (curStatus === curRound + 'Win') {
-                        fromObj.nextLoseKey[key] = curStep;
-                        fromObj.maxLose = fromObj.maxLose || -1;
-                        fromObj.maxLose = Math.max(fromObj.maxLose, curStep);
-                    } else if (curStatus === oppoRound + 'Win') {
-                        fromObj.nextWinKey[key] = curStep;
-                        fromObj.minWin = fromObj.minWin || 9999999;
-                        fromObj.minWin = Math.min(fromObj.minWin, curStep);
-                    } else if (thisObj.minWin) {
-                        fromObj.nextLoseKey[key] = thisObj.minWin;
-                        fromObj.maxLose = fromObj.maxLose || -1;
-                        fromObj.maxLose = Math.max(fromObj.maxLose, thisObj.minWin);
-                    } else if (thisObj.maxLose) {
-                        fromObj.nextWinKey[key] = thisObj.maxLose;
-                        fromObj.minWin = fromObj.minWin || 9999999;
-                        fromObj.minWin = Math.min(fromObj.minWin, thisObj.maxLose);
-                        // } else {
-                        //     fromObj.nextLoseKey[key] = thisObj.maxLose;
-                        //     fromObj.maxLose = fromObj.maxLose || -1;
-                        //     fromObj.maxLose = Math.max(fromObj.maxLose, thisObj.maxLose);
-                        //
-                        //     fromObj.nextWinKey[key] = thisObj.minWin;
-                        //     fromObj.minWin = fromObj.minWin || 9999999;
-                        //     fromObj.minWin = Math.min(fromObj.minWin, thisObj.minWin);
-                    }
-                }
-            }
-        }
-        return {startKey: startKey, data: solObj};
+        return finalObj;
+
     },
 }
 var socket = {
@@ -301,18 +347,24 @@ var socket = {
     },
     chessStartBoard: function (reqKey) {
 
-        let solObj = {};
-        solObj[reqKey] = {
+        reqKey = 'r' + reqKey;
+        let solObj = {
+            startKey: reqKey,
+            boardList: {},
+            winList: [],
+            maxNumSolution: 3
+        };
+        solObj.boardList[reqKey] = {
             posArr: Chess.getPosArrFromKey(reqKey),
             step: 0,
-            from: null
+            from: [],
+            nextListed: false,
+            nextAllKey: [],
+            nextWinKey: [],
+            nextLoseKey: []
         }
-        if (Chess.isChecking('b', solObj[reqKey].posArr)) {
-            return 'b is checking';
-        } else {
-            solObj = local.getSolution(solObj, 0);
-        }
-        console.log('--------------------------', solObj);
+
+        solObj = local.getSolution(solObj, 0, [reqKey]);
         return local.simplifySol(solObj);
     }
 }

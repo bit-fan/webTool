@@ -15,7 +15,9 @@ const pieceInfoObj = {
     rp: {minCount: 0, maxCount: 2},
     rs: {minCount: 0, maxCount: 2},
     rx: {minCount: 0, maxCount: 2}
+
 }
+const piecePosName = 'ccmmppbbbbbssxxjccmmppbbbbbssxxj';
 const rbPosbeforeRiver = [15, 16, 35, 36, 55, 56, 75, 76, 95, 96];
 const bbPosbeforeRiver = [13, 14, 33, 34, 53, 54, 73, 74, 93, 94];
 
@@ -50,7 +52,7 @@ var self = module.exports = {
         return newArr;
     },
     getPosArrFromKey(key){
-        return self.chunkStr(key, 2);
+        return self.chunkStr(key.slice(1), 2);
     },
     boardUtil(type, arr, cur, x, y){
         if (type == "isExist") {
@@ -327,7 +329,7 @@ var self = module.exports = {
         let jPos = side == 'r' ? posArr[31] : posArr[15];
         let jPosX = parseInt(jPos[0]), jPosY = parseInt(jPos[1]);
         let offset = side == 'r' ? 0 : 16;
-        if (self.boardUtil('between', posArr, posArr[15], posArr[31]).length===0) {
+        if (self.boardUtil('between', posArr, posArr[15], posArr[31]).length === 0) {
             return true;
         }
         // console.log('checking check', posArr.join(''));
@@ -419,6 +421,13 @@ var self = module.exports = {
         return {
             x: parseInt(txt[0]),
             y: parseInt(txt[1])
+        }
+    },
+    getMoveName(key1, key2){
+
+        return 'haha';
+        for (let i = 0; i < key1.length; i++) {
+
         }
     }
 }
