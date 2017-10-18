@@ -303,6 +303,42 @@ var local = {
         }
         return local.getSolution(solObj, step + 1, nextCheckKey);
     },
+    generateSolutionList(solObj, solList){
+        let appendArr = [];
+        let change = false;
+        for (let i = 0; i < solList.length; i++) {
+            let keyArr = solList[i];
+            let lastKey = keyArr.slice(-1);
+            let lastKeyObj = solObj.boardList[lastKey];
+            if (lastKeyObj.status && lastKeyObj.status.indexOf('LastWin') != -1) {
+                appendArr.push(keyArr);
+            } else if (lastKeyObj.nextWinKey.length > 0) {
+                lastKeyObj.nextWinKey.forEach(newKey => {
+                    if (keyArr.indexOf(newKey.split('#')[0]) === -1) {
+                        let newArr = Array.from(keyArr);
+                        newArr.push(newKey.split('#')[0]);
+                        appendArr.push(newArr);
+                        change = true;
+                    }
+                })
+            } else if (lastKeyObj.nextLoseKey.length > 0) {
+                lastKeyObj.nextLoseKey.forEach(newKey => {
+                    if (keyArr.indexOf(newKey.split('#')[0]) === -1) {
+                        let newArr = Array.from(keyArr);
+                        newArr.push(newKey.split('#')[0]);
+                        appendArr.push(newArr);
+                        change = true;
+                    }
+                })
+            }
+        }
+        if (change) {
+            return local.generateSolutionList(solObj, appendArr);
+        } else {
+            return solList;
+        }
+
+    },
 
     simplifySol(solObj){
         let finalObj = {};
@@ -321,7 +357,9 @@ var local = {
                 nextSteps: []
             };
             newKeyArr.forEach(keyWin => {
-                toAddKeys.push(keyWin[0]);
+                if (!finalObj[keyWin[0]]) {
+                    toAddKeys.push(keyWin[0]);
+                }
                 addObj.nextSteps.push({
                     key: keyWin[0],
                     name: Chess.getMoveName(newKey, keyWin[0]),
@@ -331,7 +369,8 @@ var local = {
 
             finalObj[newKey] = addObj;
         }
-        return finalObj;
+        let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
+        return {startKey: solObj.startKey, steps: finalObj, solList: solList};
 
     },
 }
@@ -345,8 +384,6 @@ var socket = {
         return Chess.isBoardObjValid(req);
     },
     chessStartBoard: function (reqKey) {
-
-        reqKey = 'r' + reqKey;
         let solObj = {
             startKey: reqKey,
             boardList: {},
@@ -364,6 +401,7 @@ var socket = {
         }
 
         solObj = local.getSolution(solObj, 0, [reqKey]);
+        console.log('solObj', JSON.stringify(solObj));
         return local.simplifySol(solObj);
     }
 }

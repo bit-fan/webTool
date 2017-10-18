@@ -18,6 +18,7 @@ const pieceInfoObj = {
 
 }
 const piecePosName = 'ccmmppbbbbbssxxjccmmppbbbbbssxxj';
+const piecePosArr = [4, 4, 4, 10, 4, 4, 2];
 const rbPosbeforeRiver = [15, 16, 35, 36, 55, 56, 75, 76, 95, 96];
 const bbPosbeforeRiver = [13, 14, 33, 34, 53, 54, 73, 74, 93, 94];
 
@@ -86,7 +87,7 @@ var self = module.exports = {
     },
 
     isBoardObjValid(obj){
-        let pieceObj = {}, matrix = {}, allValid = true, boardKey = '';
+        let pieceObj = {}, matrix = {}, allValid = true, boardKey = 'r';
         let rbPosList = Array.from(rbPosbeforeRiver);
         let bbPosList = Array.from(bbPosbeforeRiver);
 
@@ -423,24 +424,70 @@ var self = module.exports = {
             y: parseInt(txt[1])
         }
     },
-    getMoveName(key1, key2){
-        let diffPos = [];
-        for (let i = 1; i < key1.length; i = i + 2) {
-            let str1 = key1[i] + key1[i + 1];
-            let str2 = key2[i] + key2[i + 1];
-            if (str1 == '00' || str2 == '00') {
-                continue;
+    getMoveName(k1, k2){
+        let pieceName = '';
+        let offset = k1[0] == 'b' ? 33 : 1;
+        let key1 = k1.slice(offset, offset + 32);
+        let key2 = k2.slice(offset, offset + 32);
+        let diffKey1 = '', diffKey2 = '';
+        piecePosArr.reduce((pre, next, idx) => {
+            let str1 = key1.slice(pre, pre + next);
+            let str2 = key2.slice(pre, pre + next);
+            if (str1 != str2) {
+                diffKey1 = str1;
+                diffKey2 = str2;
+                pieceName = piecePosName[pre / 2];
+            }
+            return pre + next;
+        }, 0)
+        console.log(key1, key2, pieceName, diffKey1, diffKey2);
+        let oriPos, newPos, direction, pos1, pos2;
+        if ('cpj'.indexOf[pieceName] != -1) {
+            pos1 = diffKey1.slice(0, 2) == diffKey2.slice(0, 2) ? diffKey1.slice(2) : diffKey1.slice(0, 2);
+            pos2 = diffKey1.slice(2) == diffKey2.slice(2) ? diffKey2.slice(0, 2) : diffKey2.slice(2);
+            if (diffKey1[0] != diffKey1[2]) {//not in one col
+                oriPos = pos1[0];
+            } else {//in one col
+                if (2 * parseInt(pos1[1]) > parseInt(diffKey1[0]) + parseInt(diffKey1[2])) {
+                    oriPos = "big"
+                } else {
+                    oriPos = 'small';
+                }
+            }
+            if (pos1[0] == pos2[0]) {//move vertical
+                direction = pos2[1] > pos1[1] ? 1 : -1;
+                newPos = parseInt(pos2[1]) - parseInt(pos1[1]);
+            } else {//move hori
+                direction = 0;
+                newPos = pos2[0];
             }
 
-            if (str1 != str2) {
-                diffPos.push((i - 1) / 2);
-                diffPos.push(str1);
-                diffPos.push(str2);
-            }
+        } else if ('msx'.indexOf[pieceName] != -1) {
+
+        } else if (pieceName == 'b') {
+
+            // } else if (pieceName == 'j') {
+
         }
-        console.log(key1, '&', key2, '&', diffPos);
-        let pieceName = (diffPos[0] > 15 ? 'b' : 'r') + piecePosName[diffPos[0]];
-        console.log(pieceName, diffPos)
-        return 'haha';
+
+        // let diffPos = [];
+        // for (let i = 1; i < key1.length; i = i + 2) {
+        //     let str1 = key1[i] + key1[i + 1];
+        //     let str2 = key2[i] + key2[i + 1];
+        //     if (str1 == '00' || str2 == '00') {
+        //         continue;
+        //     }
+        //
+        //     if (str1 != str2) {
+        //         diffPos.push((i - 1) / 2);
+        //         diffPos.push(str1);
+        //         diffPos.push(str2);
+        //     }
+        // }
+        // console.log(key1, '&', key2, '&', diffPos);
+        // let pieceName = (diffPos[0] > 15 ? 'b' : 'r') + piecePosName[diffPos[0]];
+        // console.log(pieceName, diffPos)
+        // console.log(pos1, pos2, pieceName, oriPos, direction, newPos);
+        return [pieceName, oriPos, direction, newPos];
     }
 }

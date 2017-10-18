@@ -260,7 +260,7 @@
                 console.log('final', finalBoard);
                 mySkt.send('chessValidateBoard', finalBoard, resData => {
                     console.log('res', resData);
-                    finalBoardKey=resData.boardKey;
+                    finalBoardKey = resData.boardKey;
                     displayInfo('validCheck', resData);
                 }, failData => {
                     console.log(failData);
@@ -326,7 +326,7 @@
         function submitBoard() {
             mySkt.send('chessStartBoard', finalBoardKey, resData => {
                 console.log('res', resData);
-                displayInfo('solution',resData);
+                displayInfo('solution', resData);
             }, failData => {
                 console.log(failData);
                 // setLoading(true, failData.code || 'Error');
@@ -336,6 +336,7 @@
         function displayInfo(type, srcObj) {
             if (type == "validCheck") {
                 $('#validCheckResult').removeClass('collapse');
+                $('#solutionDiv').addClass('collapse');
                 $('#boardValidText').html(srcObj.isValid ? "合法" : "非法");
                 $('#boardDuplicateValidText').html(srcObj.error.duplicatePos.length);
                 $('#boardPosValidText').html(srcObj.error.invalidPos.length);
@@ -352,8 +353,64 @@
                     $('#boardPieceQtyValidText').html('0');
                 }
 
-            } else if(type=='solution'){
-                
+            } else if (type == 'solution') {
+                $('#validCheckResult').addClass('collapse');
+                $('#solutionDiv').removeClass('collapse');
+                $('#solutionDiv').html('');
+                let nowKey = srcObj.startKey;
+                nowKey = null;
+                while (srcObj.steps[nowKey]) {
+                    let stepObj = srcObj.steps[nowKey].nextSteps[0];
+                    if (!stepObj) {
+                        break;
+                    }
+                    let coef = nowKey[0] == 'b' ? 1 : -1;
+                    let newDiv = $('#moveStepDiv').clone().removeClass('collapse');
+                    let preName = '';
+                    if (stepObj.name[1] == 'big') {
+                        preName = coef;
+                    } else if (stepObj.name[1] == 'small') {
+                        preName = -coef;
+                    } else {
+                        preName = '';
+                    }
+                    switch (preName) {
+                        case 1:
+                            $(newDiv).find('.prePieceName').text('qian');
+                            break;
+                        case -1:
+                            $(newDiv).find('.prePieceName').text('hou');
+                            break;
+                        case '':
+                            $(newDiv).find('.prePieceName').text('');
+                            break;
+                    }
+                    $(newDiv).find('.prePieceName').text();
+                    $(newDiv).find('img').attr('src', getPieceImgStr(nowKey[0] + stepObj.name[0]));
+                    switch (stepObj.name[2] * coef) {
+                        case 0:
+                            $(newDiv).find('.direction').text('ping');
+                            break;
+                        case 1:
+                            $(newDiv).find('.direction').text('jin');
+                            break;
+                        case -1:
+                            $(newDiv).find('.direction').text('tui');
+                            break;
+                    }
+                    $(newDiv).find('.moveQty').text(stepObj.name[3]);
+                    $('#solutionDiv').append(newDiv);
+                    // if (stepObj.nextSteps && stepObj.nextSteps[0]) {
+                    nowKey = stepObj.key
+                    // } else {
+                    //     nowKey = '';
+                    // }
+                }
+                // label.prePieceName
+                // img.smallPieceSize
+                // label.afterPieceName
+                // label.direction
+                // label.moveQty
 
             }
         }
