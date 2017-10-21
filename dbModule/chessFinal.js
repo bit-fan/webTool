@@ -110,80 +110,37 @@ var local = {
         }
     },
 
-    getCastleNextPos(pieceArr, curPos){
-        let side = pieceArr.indexOf(curPos) < 16 ? 'r' : 'b';
-        let nextArr = [];
-        let curX = parseInt(curPos[0]), curY = parseInt(curPos[1]);
-        for (let i = 0; i < 10; i++) {
-            if (i != 0) {
-                nextArr.push(('' + curX + i));
-                nextArr.push(('' + i + curY));
-            } else {
-                nextArr.push(curX + '0');
-            }
-        }
-        console.log('pre next', nextArr, curPos);
-        return nextArr.filter(item => {
-            // if (item == curPos) {
-            //     return false
-            // }
-            if (local.boardUtil('between', pieceArr, curPos, item).length > 0) {
-                console.log('item between fail', item, local.boardUtil('between', pieceArr, curPos, item))
-                return false;
-            }
-            let testSide = local.boardUtil('side', pieceArr, item);
-            if (testSide && testSide == side) {
-                console.log('item side fail', item)
-                return false;
-            }
-            return true;
-        })
-    },
+    // getCastleNextPos(pieceArr, curPos){
+    //     let side = pieceArr.indexOf(curPos) < 16 ? 'r' : 'b';
+    //     let nextArr = [];
+    //     let curX = parseInt(curPos[0]), curY = parseInt(curPos[1]);
+    //     for (let i = 0; i < 10; i++) {
+    //         if (i != 0) {
+    //             nextArr.push(('' + curX + i));
+    //             nextArr.push(('' + i + curY));
+    //         } else {
+    //             nextArr.push(curX + '0');
+    //         }
+    //     }
+    //     console.log('pre next', nextArr, curPos);
+    //     return nextArr.filter(item => {
+    //         // if (item == curPos) {
+    //         //     return false
+    //         // }
+    //         if (local.boardUtil('between', pieceArr, curPos, item).length > 0) {
+    //             console.log('item between fail', item, local.boardUtil('between', pieceArr, curPos, item))
+    //             return false;
+    //         }
+    //         let testSide = local.boardUtil('side', pieceArr, item);
+    //         if (testSide && testSide == side) {
+    //             console.log('item side fail', item)
+    //             return false;
+    //         }
+    //         return true;
+    //     })
+    // },
 
-    getHorseNextPos(pieceArr, curPos){
-        let cC = curPos % 10, cR = parseInt(curPos / 10);
-        let finalArr = [];
-        if (!board.matrix[local.getPos('offset', curPos, -1, 0)]) {
-            finalArr.push(local.getPos('offset', curPos, -2, -1)).push(local.getPos('offset', curPos, -2, 1));
-        }
-        if (!board.matrix[local.getPos('offset', curPos, 1, 0)]) {
-            finalArr.push([cC + 2, cR - 1]).push([cC + 2, cR + 1])
-        }
-        if (!board.matrix[local.getPos('offset', curPos, 0, -1)]) {
-            finalArr.push([cC - 1, cR - 2]).push([cC + 1, cR - 2])
-        }
-        if (!board.matrix[local.getPos('offset', curPos, 0, 1)]) {
-            finalArr.push([cC - 1, cR + 2]).push([cC + 1, cR + 2])
-        }
-        return finalArr.filter(arr => {
-            return arr != false;
-        });
-    },
-    getBishopNextPos(board, curPos)
-    {
-        let cC = curPos % 10, cR = parseInt(curPos / 10);
-        let finalArr = [];
-        if (!board.matrix[cC - 1 + '' + (cR - 1)]) {
-            finalArr.push([cC - 2, cR - 2]);
-        }
-        if (!board.matrix[cC - 1 + '' + (cR + 1)]) {
-            finalArr.push([cC - 2, cR + 2])
-        }
-        if (!board.matrix[cC + 1 + '' + (cR - 1)]) {
-            finalArr.push([cC + 2, cR - 2])
-        }
-        if (!board.matrix[cC + 1 + '' + (cR + 1)]) {
-            finalArr.push([cC + 2, cR + 2])
-        }
-        return finalArr.filter(arr => {
-            if ((col - 4.5) * (arr[0] - 4.5) < 0) {
-                return false;
-            }
-            return arr[0] > 0 && arr[0] < 10 && arr[1] > -1 && arr[1] < 10;
-        }).map(arr => {
-            return arr[0] * 10 + arr[1]
-        });
-    },
+
     parseBoard(srcObj, step)
     {
         let board = {matrix: {}, piece: {}, step: step, status: ''};
@@ -341,36 +298,36 @@ var local = {
     },
 
     simplifySol(solObj){
-        let finalObj = {};
-        let toAddKeys = [solObj.startKey];
-        while (toAddKeys.length > 0) {
-            let newKey = toAddKeys.shift();
-            let newObj = solObj.boardList[newKey];
-
-            let keyNameToAdd = newObj.nextWinKey.length > 0 ? 'nextWinKey' : 'nextLoseKey'
-            let newKeyArr = newObj[keyNameToAdd].map(rawKey => {
-                return rawKey.split('#');
-            }).sort((a, b) => {
-                return a[1] < b[1]
-            }).slice(-solObj.maxNumSolution);
-            let addObj = {
-                nextSteps: []
-            };
-            newKeyArr.forEach(keyWin => {
-                if (!finalObj[keyWin[0]]) {
-                    toAddKeys.push(keyWin[0]);
-                }
-                addObj.nextSteps.push({
-                    key: keyWin[0],
-                    name: Chess.getMoveName(newKey, keyWin[0]),
-                    step: keyWin[1]
-                })
-            })
-
-            finalObj[newKey] = addObj;
-        }
+        // let finalObj = {};
+        // let toAddKeys = [solObj.startKey];
+        // while (toAddKeys.length > 0) {
+        //     let newKey = toAddKeys.shift();
+        //     let newObj = solObj.boardList[newKey];
+        //
+        //     let keyNameToAdd = newObj.nextWinKey.length > 0 ? 'nextWinKey' : 'nextLoseKey'
+        //     let newKeyArr = newObj[keyNameToAdd].map(rawKey => {
+        //         return rawKey.split('#');
+        //     }).sort((a, b) => {
+        //         return a[1] < b[1]
+        //     }).slice(-solObj.maxNumSolution);
+        //     let addObj = {
+        //         nextSteps: []
+        //     };
+        //     newKeyArr.forEach(keyWin => {
+        //         if (!finalObj[keyWin[0]]) {
+        //             toAddKeys.push(keyWin[0]);
+        //         }
+        //         addObj.nextSteps.push({
+        //             key: keyWin[0],
+        //             name: Chess.getMoveName(newKey, keyWin[0]),
+        //             step: keyWin[1]
+        //         })
+        //     })
+        //
+        //     finalObj[newKey] = addObj;
+        // }
         let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
-        return {startKey: solObj.startKey, steps: finalObj, solList: solList};
+        return {startKey: solObj.startKey, solList: solList};//, steps: finalObj
 
     },
 }
