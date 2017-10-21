@@ -1,170 +1,19 @@
 const util = require('./utility/util');
 const Chess = require('./utility/chess');
 
-const piexeAvailMapObj = {
-    bs: [40, 60, 51, 42, 62],
-    bx: [12, 30, 34, 52, 70, 74, 92],
-    bj: [40, 41, 42, 50, 51, 52, 60, 61, 62],
-    rs: [49, 69, 58, 47, 67],
-    rx: [17, 39, 35, 57, 79, 75, 97],
-    rj: [49, 48, 47, 59, 58, 57, 69, 68, 67],
-}
-
-const boardObj = {
-    bb: [],
-    bc: [],
-    bj: [],
-    bm: [],
-    bp: [],
-    bs: [],
-    bx: [],
-
-    rb: [],
-    rc: [],
-    rj: [],
-    rm: [],
-    rp: [],
-    rs: [],
-    rx: []
-}
-var redNotCheckingArr = [];
-
 var local = {
-    parseStrToBoard(str){
-        //车2马2炮2兵5将1士2象2
-        let pos = util.chunkStr(str, 2);
-        if (pos.length != 32) {
-            return {valid: false, data: {}};
-        }
-        return {
-            valid: true, posArr1: {
-                bb: [pos[6], pos[7], pos[8], pos[9], pos[10]],
-                bc: [pos[0], pos[1]],
-                bj: [pos[11]],
-                bm: [pos[2], pos[3]],
-                bp: [pos[4], pos[5]],
-                bs: [pos[12], pos[13]],
-                bx: [pos[14], pos[15]],
-
-                rb: [pos[22], pos[23], pos[24], pos[25], pos[26]],
-                rc: [pos[16], pos[17]],
-                rj: [pos[27]],
-                rm: [pos[18], pos[19]],
-                rp: [pos[20], pos[21]],
-                rs: [pos[28], pos[29]],
-                rx: [pos[30], pos[31]]
-            }, posArr: pos
-        };
-    },
-    parseBoardToStr(obj){
-        function concat(src, key, size) {
-            if (size == 0) {
-                return src;
-            }
-            let item = (obj[key] && obj[key].length + 1 > size) ? obj[key][size - 1] : '00';
-            // console.log(item);
-            return concat(src += item, key, size - 1);
-        }
-
-        let str = '';
-
-        str = concat(str, 'rc', 2);
-        str = concat(str, 'rm', 2);
-        str = concat(str, 'rp', 2);
-        str = concat(str, 'rb', 5);
-        str = concat(str, 'rj', 1);
-        str = concat(str, 'rs', 2);
-        str = concat(str, 'rx', 2);
-
-        str = concat(str, 'bc', 2);
-        str = concat(str, 'bm', 2);
-        str = concat(str, 'bp', 2);
-        str = concat(str, 'bb', 5);
-        str = concat(str, 'bj', 1);
-        str = concat(str, 'bs', 2);
-        str = concat(str, 'bx', 2);
-
-        console.log(str);
-        if (str.length == 64) {
-            return {valid: true, str: str};
-        } else {
-            return {valid: false, str: ''}
-        }
-    },
-    getPos(type, cur, x, y, para1, para2){
-        if (type == 'offset') {
-            x += parseInt(cur[0]);
-            y += parseInt(cur[1]);
-            if (x < 1 || x > 9 || y < 0 || y > 9) {
-                return false;
-            } else {
-                return '' + x + y;
-            }
-        } else if (type == "march") {
-            let item = local.getPos("offset", cur, x, y);
-            if (item) {
-                return getPos("march", item, x, y).push(item);
-            } else {
-                return [];
-            }
-        }
-    },
-
-    // getCastleNextPos(pieceArr, curPos){
-    //     let side = pieceArr.indexOf(curPos) < 16 ? 'r' : 'b';
-    //     let nextArr = [];
-    //     let curX = parseInt(curPos[0]), curY = parseInt(curPos[1]);
-    //     for (let i = 0; i < 10; i++) {
-    //         if (i != 0) {
-    //             nextArr.push(('' + curX + i));
-    //             nextArr.push(('' + i + curY));
-    //         } else {
-    //             nextArr.push(curX + '0');
-    //         }
-    //     }
-    //     console.log('pre next', nextArr, curPos);
-    //     return nextArr.filter(item => {
-    //         // if (item == curPos) {
-    //         //     return false
-    //         // }
-    //         if (local.boardUtil('between', pieceArr, curPos, item).length > 0) {
-    //             console.log('item between fail', item, local.boardUtil('between', pieceArr, curPos, item))
-    //             return false;
-    //         }
-    //         let testSide = local.boardUtil('side', pieceArr, item);
-    //         if (testSide && testSide == side) {
-    //             console.log('item side fail', item)
-    //             return false;
-    //         }
-    //         return true;
-    //     })
-    // },
-
-
-    parseBoard(srcObj, step)
-    {
-        let board = {matrix: {}, piece: {}, step: step, status: ''};
-        for (let key in srcObj) {
-            let pieceName = srcObj[key], pos = parseInt(key);
-
-            board.piece[pieceName] = board.piece[pieceName] || [];
-            board.piece[pieceName].push(pos);
-            board.matrix[pos] = pieceName;
-        }
-
-    },
-    getFromObj(obj, curKey){
-        return obj[obj[curKey].from];
-    },
     getSolution(solObj, step, checkKey){
         console.log('total keys', Object.keys(solObj.boardList).length, solObj.winList.length);
-        if (checkKey.length == 0 || solObj.winList.length > 100) {
+        if (checkKey.length == 0 || solObj.winList.length > 19) {
             return solObj;
         }
         let checkNowKey = [], nextCheckKey = [];
         while (checkKey.length > 0) {
 
             let thisBoardKey = checkKey[0], curRound = thisBoardKey[0];
+            if(thisBoardKey=='b1000600040003271000000476939004921000000180013283800005162700041'){
+                console.log('f');
+            }
             let thisBoardObj = solObj.boardList[thisBoardKey];
             let nextboardArr = [];
             if (thisBoardKey.startsWith('r')) {
@@ -270,7 +119,7 @@ var local = {
             let keyArr = solList[i];
             let lastKey = keyArr.slice(-1);
             let lastKeyObj = solObj.boardList[lastKey];
-            if (lastKeyObj.status && lastKeyObj.status.indexOf('LastWin') != -1) {
+            if (lastKeyObj.status && lastKeyObj.status.indexOf('rLastWin') != -1) {
                 appendArr.push(keyArr);
                 numFoundList++;
             } else if (lastKeyObj.nextWinKey.length > 0) {
@@ -302,34 +151,6 @@ var local = {
     },
 
     simplifySol(solObj){
-        // let finalObj = {};
-        // let toAddKeys = [solObj.startKey];
-        // while (toAddKeys.length > 0) {
-        //     let newKey = toAddKeys.shift();
-        //     let newObj = solObj.boardList[newKey];
-        //
-        //     let keyNameToAdd = newObj.nextWinKey.length > 0 ? 'nextWinKey' : 'nextLoseKey'
-        //     let newKeyArr = newObj[keyNameToAdd].map(rawKey => {
-        //         return rawKey.split('#');
-        //     }).sort((a, b) => {
-        //         return a[1] < b[1]
-        //     }).slice(-solObj.maxNumSolution);
-        //     let addObj = {
-        //         nextSteps: []
-        //     };
-        //     newKeyArr.forEach(keyWin => {
-        //         if (!finalObj[keyWin[0]]) {
-        //             toAddKeys.push(keyWin[0]);
-        //         }
-        //         addObj.nextSteps.push({
-        //             key: keyWin[0],
-        //             name: Chess.getMoveName(newKey, keyWin[0]),
-        //             step: keyWin[1]
-        //         })
-        //     })
-        //
-        //     finalObj[newKey] = addObj;
-        // }
         let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
         return {startKey: solObj.startKey, solList: solList};//, steps: finalObj
 
@@ -337,11 +158,6 @@ var local = {
 }
 var socket = {
     chessValidateBoard: function (req) {
-        let reqObj = req || {};
-        let errorObj = {}, result = true;
-        let parseObj = JSON.parse(JSON.stringify(boardObj));
-        console.log(reqObj);
-
         return Chess.isBoardObjValid(req);
     },
     chessStartBoard: function (reqKey) {

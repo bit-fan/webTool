@@ -260,7 +260,7 @@ var self = module.exports = {
     },
     getAllNextEscapingBoard(posArr, side){
         let nextStepArr = [];
-        let offset = side === 'r' ? 0 : 16
+        let offset = side === 'r' ? 0 : 16;
         for (let j = offset; j < 16 + offset; j++) {
             let newBoardKeys = [];
             let i = j - offset;
@@ -295,71 +295,6 @@ var self = module.exports = {
         });
     },
 
-    // parseBoardToStr(obj){
-    //     function concat(src, key, size) {
-    //         if (size == 0) {
-    //             return src;
-    //         }
-    //         let item = (obj[key] && obj[key].length + 1 > size) ? obj[key][size - 1] : '00';
-    //         // console.log(item);
-    //         return concat(src += item, key, size - 1);
-    //     }
-    //
-    //     let str = '';
-    //
-    //     str = concat(str, 'rc', 2);
-    //     str = concat(str, 'rm', 2);
-    //     str = concat(str, 'rp', 2);
-    //     str = concat(str, 'rb', 5);
-    //     str = concat(str, 'rj', 1);
-    //     str = concat(str, 'rs', 2);
-    //     str = concat(str, 'rx', 2);
-    //
-    //     str = concat(str, 'bc', 2);
-    //     str = concat(str, 'bm', 2);
-    //     str = concat(str, 'bp', 2);
-    //     str = concat(str, 'bb', 5);
-    //     str = concat(str, 'bj', 1);
-    //     str = concat(str, 'bs', 2);
-    //     str = concat(str, 'bx', 2);
-    //
-    //     console.log(str);
-    //     if (str.length == 64) {
-    //         return {valid: true, str: str};
-    //     } else {
-    //         return {valid: false, str: ''}
-    //     }
-    // },
-    parseBoardKeytoArr(str){
-        let pos = chunkStr(str, 2);
-        if (pos.length != 32) {
-            debugger;
-            console.log('invalid parse str', str);
-        }
-        return pos;
-        // return {
-        //     valid: true, posArr1: {
-        //         bb: [pos[6], pos[7], pos[8], pos[9], pos[10]],
-        //         bc: [pos[0], pos[1]],
-        //         bj: [pos[11]],
-        //         bm: [pos[2], pos[3]],
-        //         bp: [pos[4], pos[5]],
-        //         bs: [pos[12], pos[13]],
-        //         bx: [pos[14], pos[15]],
-        //
-        //         rb: [pos[22], pos[23], pos[24], pos[25], pos[26]],
-        //         rc: [pos[16], pos[17]],
-        //         rj: [pos[27]],
-        //         rm: [pos[18], pos[19]],
-        //         rp: [pos[20], pos[21]],
-        //         rs: [pos[28], pos[29]],
-        //         rx: [pos[30], pos[31]]
-        //     }, posArr: pos
-        // };
-    },
-    parseBoardArrtoKey(arr){
-
-    },
     getValidNextMoveArr(oriArr, pos1, pos2Arr){
         if (pos1 == '00') {
             return [];
@@ -399,6 +334,9 @@ var self = module.exports = {
         return newArr;
     },
     isChecking(side, posArr){
+        if (posArr[27] == '60' && posArr[0] == '10' && posArr[2] == '00' && posArr[31] == '41') {
+            console.log('hehe');
+        }
         let jPos = side == 'r' ? posArr[31] : posArr[15];
         let jPosX = parseInt(jPos[0]), jPosY = parseInt(jPos[1]);
         let offset = side == 'r' ? 0 : 16;
@@ -438,13 +376,24 @@ var self = module.exports = {
                     return true;
                 }
             }
+            //check cannon
+            if (i === 4 || i === 5) {
+                let cannon = self.boardUtil('between', posArr, pos, jPos);
+                if (cannon.length == 1) {
+                    return true;
+                }
+            }
             //checkPawn
-            if (i > 5 || i < 11) {
+            if (i > 5 && i < 11) {
                 let pawnX = parseInt(pos[0]), pawnY = parseInt(pos[1]);
                 if ((pawnX - jPosX) * (pawnX - jPosX) + (pawnY - jPosY) * (pawnY - jPosY) !== 1) {
                     continue;
                 }
-                return true;
+                if (side == 'r' && pawnY == jPosY + 1) {
+                    return true;
+                } else if (side == 'b' && pawnY == jPosY - 1) {
+                    return true;
+                }
             }
         }
 
@@ -555,28 +504,17 @@ var self = module.exports = {
         }
 
         return self.getValidNextMoveArr(pieceArr, curPos, finalArr);
-        // let afterArr = finalArr.filter(pos => {
-        //     if (pos == '00') {
-        //         return false;
-        //     }
-        //     let idx = pieceArr.indexOf(pos);
-        //     return idx == -1 || (15 - idx) * side > 0;
-        // });
-        // let resultArr = afterArr.map(pos => {
-        //     return self.getNewArrAfterMoving(pieceArr, curPos, pos);
-        // });
-        // return resultArr;
     },
     getPawnNextPos(pieceArr, curPos){
         let side = pieceArr.indexOf(curPos) > 15 ? 'b' : 'r';
         let curSide = parseInt(curPos[1]) > 4.5 ? 'b' : 'r';
-        let forward = parseInt(curPos[1]) > 4.5 ? 1 : -1;
+        let forward = side === 'b' ? 1 : -1;
         let x = parseInt(curPos[0]), y = parseInt(curPos[1]);
         let arr = [];
         if (y + forward > -1 && y + forward < 10) {
             arr.push(x + '' + (y + forward))
         }
-        if (side != curSide) {
+        if (side === curSide) {//过河兵
             if (x > 1) {
                 arr.push(x - 1 + '' + y)
             }
@@ -584,10 +522,10 @@ var self = module.exports = {
                 arr.push(x + 1 + '' + y)
             }
         }
-        let afterArr = arr.filter(pos => {
-            return self.boardUtil('side', pieceArr, pos) != side;
-        })
-        return self.getValidNextMoveArr(pieceArr, curPos, afterArr);
+        // let afterArr = arr.filter(pos => {
+        //     return self.boardUtil('side', pieceArr, pos) != side;
+        // })
+        return self.getValidNextMoveArr(pieceArr, curPos, arr);
         // return afterArr.map(pos => {
         //     return self.getNewArrAfterMoving(pieceArr, curPos, pos);
         // });
@@ -600,20 +538,12 @@ var self = module.exports = {
         let piece = p.y < 3 ? 'bj' : 'rj';
         let new1 = piexeAllowPosObj[piece].filter(newPos => {
             let p1 = self.getNumPosFromStr(newPos.toString());
-            // if (self.boardUtil('side', pieceArr, '' + p1.x + p1.y) == p1) {
-            //     return false;
-            // }
             if ((p1.x - p.x) * (p1.x - p.x) + (p1.y - p.y) * (p1.y - p.y) != 1) {
                 return false;
             }
             return true;
         })
         return self.getValidNextMoveArr(pieceArr, pos, new1.map(pos => pos.toString()));
-
-        // let new2 = new1.map(newPos => {
-        //     return self.getNewArrAfterMoving(pieceArr, pos, newPos.toString());
-        // });
-        // return new2;
 
     },
     getAdvisoryNextPos(pieceArr, curPos){
@@ -626,7 +556,13 @@ var self = module.exports = {
         if (curPos === '00') {
             return [];
         }
-        return self.getValidNextMoveArr(pieceArr, curPos, allNextBishopPos[curPos]);
+        let x = parseInt(curPos[0]), y = parseInt(curPos[1]);
+        let allNext = allNextBishopPos[curPos].filter(pos => {
+            let x1 = parseInt(pos[0]), y1 = parseInt(pos[1]);
+            let midPos = (x + x1) / 2 + '' + (y + y1) / 2;
+            return !self.boardUtil('isExist', pieceArr, midPos);
+        })
+        return self.getValidNextMoveArr(pieceArr, curPos, allNext);
     },
     getNumPosFromStr(txt){
         return {
