@@ -246,8 +246,12 @@ var self = module.exports = {
             if (i == 13 || i == 14) {
                 newBoardKeys = self.getBishopNextPos(posArr, posArr[j]);
             }
+            if (i == 15) {
+                newBoardKeys = self.getMarshalNextPos(posArr, posArr[j]);
+            }
             nextStepArr = nextStepArr.concat(newBoardKeys);
         }
+        // return nextStepArr;
         return nextStepArr.filter(posArr => {
             // console.log('nextPos', posArr.join(''));
             // let rCheck= self.isChecking('r', posArr);
@@ -362,25 +366,29 @@ var self = module.exports = {
         }
         let nextArr = [], side1 = oriArr.indexOf(pos1) > 15 ? 'b' : 'r';
         pos2Arr.forEach(pos2 => {
+            let okToMove = false;
             let newArr = Array.from(oriArr);
             let side2 = oriArr.indexOf(pos2);
-            if (side2 < 16 && side1 == 'b') {
+            if (side2 == -1) {
+                okToMove = true;
+            } else if (side2 < 16 && side1 == 'b') {
                 //r
                 newArr.splice(side2, 1, '00');
+                okToMove = true;
             } else if (side2 > 15 && side1 == 'r') {
                 //b
                 newArr.splice(side2, 1, '00');
+                okToMove = true;
             }
-            let idx = oriArr.indexOf(pos1);
-            newArr.splice(idx, 1, pos2);
-            nextArr.push(newArr);
+            if (okToMove) {
+                let idx = oriArr.indexOf(pos1);
+                newArr.splice(idx, 1, pos2);
+                nextArr.push(newArr);
+            }
         })
         return nextArr;
     },
     getNewArrAfterMoving(oriArr, pos1, pos2){
-        if (pos1 == '53') {
-            console.log(oriArr, pos1, pos2);
-        }
         let newArr = Array.from(oriArr);
         let del = oriArr.indexOf(pos2);
         if (del != -1) {
@@ -490,23 +498,22 @@ var self = module.exports = {
             return [];
         }
         let side = pieceArr.indexOf(curPos) < 16 ? 'r' : 'b';
+        let oppoSide = pieceArr[0] == 'r' ? 'b' : 'r';
         let nextArr = self.getAllPosInLine(curPos);
-        let afterArr = nextArr.filter(item => {
-            let numPieceBetween = self.boardUtil('between', pieceArr, curPos, item);
+        let afterArr = nextArr.filter(pos => {
+            if (curPos == '31' && pos === '51' && pieceArr[31] === '51') {
+                console.log('here');
+            }
+            let numPieceBetween = self.boardUtil('between', pieceArr, curPos, pos);
             if (numPieceBetween.length > 1) {
                 return false;
             }
-            if (numPieceBetween == 1 && !self.boardUtil('isExist', pieceArr, numPieceBetween[0])) {
-                return false;
+            if (numPieceBetween == 1) {
+                return self.boardUtil('side', pieceArr, pos) === oppoSide;
             }
-            if (numPieceBetween.length == 0 && !self.boardUtil('isExist', pieceArr, item)) {
-                return true;
+            if (numPieceBetween.length == 0) {
+                return !self.boardUtil('isExist', pieceArr, pos);
             }
-            let testSide = self.boardUtil('side', pieceArr, item);
-            if (testSide && testSide == side) {
-                return false;
-            }
-            return true;
         })
 
         return self.getValidNextMoveArr(pieceArr, curPos, afterArr);
@@ -601,7 +608,7 @@ var self = module.exports = {
             }
             return true;
         })
-        return self.getValidNextMoveArr(pieceArr, pos, new1.map(pos=>pos.toString()));
+        return self.getValidNextMoveArr(pieceArr, pos, new1.map(pos => pos.toString()));
 
         // let new2 = new1.map(newPos => {
         //     return self.getNewArrAfterMoving(pieceArr, pos, newPos.toString());
@@ -609,33 +616,17 @@ var self = module.exports = {
         // return new2;
 
     },
-    getAdvisoryNextPos(pieceArr, pos){
-        let side = pieceArr.indexOf(pos) < 16 ? 1 : -1;
-        let arr = allNextAdvisoryPos[pos];
-        let newPosArr = [];
-        if (arr && arr.length > 0) {
-            newPosArr = arr.filter(pos => {
-                let idx = pieceArr.indexOf(pos);
-                return idx == -1 || (15 - idx) * side > 0;
-            })
+    getAdvisoryNextPos(pieceArr, curPos){
+        if (curPos === '00') {
+            return [];
         }
-        return newPosArr.map(pos => {
-            return self.getNewArrAfterMoving(pieceArr, curPos, pos);
-        });
+        return self.getValidNextMoveArr(pieceArr, curPos, allNextAdvisoryPos[curPos]);
     },
-    getBishopNextPos(pieceArr, pos){
-        let newPosArr = [];
-        let side = pieceArr.indexOf(pos) < 16 ? 1 : -1;
-        let arr = allNextBishopPos[pos];
-        if (arr && arr.length > 0) {
-            newPosArr = arr.filter(pos => {
-                let idx = pieceArr.indexOf(pos);
-                return idx == -1 || (15 - idx) * side > 0;
-            })
+    getBishopNextPos(pieceArr, curPos){
+        if (curPos === '00') {
+            return [];
         }
-        return newPosArr.map(pos => {
-            return self.getNewArrAfterMoving(pieceArr, curPos, pos);
-        });
+        return self.getValidNextMoveArr(pieceArr, curPos, allNextBishopPos[curPos]);
     },
     getNumPosFromStr(txt){
         return {

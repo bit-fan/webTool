@@ -157,7 +157,8 @@ var local = {
         return obj[obj[curKey].from];
     },
     getSolution(solObj, step, checkKey){
-        if (checkKey.length == 0) {
+        console.log('total keys', Object.keys(solObj.boardList).length, solObj.winList.length);
+        if (checkKey.length == 0 || solObj.winList.length > 100) {
             return solObj;
         }
         let checkNowKey = [], nextCheckKey = [];
@@ -180,6 +181,7 @@ var local = {
                 } else {
                     thisBoardObj.status = 'rLastWin';
                     thisBoardObj.maxLose = 1;
+                    solObj.winList.push(thisBoardKey);
                 }
                 checkNowKey = checkNowKey.concat(thisBoardObj.from);
             } else {
@@ -238,7 +240,7 @@ var local = {
                 })
                 thisKeyObj.nextAllKey = newNextAllKey;
                 if (thisKeyObj.nextWinKey.length >= solObj.maxNumSolution) {
-                    solObj.winList.push(checkNowKey[0]);
+                    // solObj.winList.push(checkNowKey[0]);
                 }
                 if (thisKeyObj.nextAllKey.length == 0 && thisKeyObj.nextWinKey.length == 0) {
 
@@ -263,12 +265,14 @@ var local = {
     generateSolutionList(solObj, solList){
         let appendArr = [];
         let change = false;
+        let numFoundList = 0;
         for (let i = 0; i < solList.length; i++) {
             let keyArr = solList[i];
             let lastKey = keyArr.slice(-1);
             let lastKeyObj = solObj.boardList[lastKey];
             if (lastKeyObj.status && lastKeyObj.status.indexOf('LastWin') != -1) {
                 appendArr.push(keyArr);
+                numFoundList++;
             } else if (lastKeyObj.nextWinKey.length > 0) {
                 lastKeyObj.nextWinKey.forEach(newKey => {
                     if (keyArr.indexOf(newKey.split('#')[0]) === -1) {
@@ -289,7 +293,7 @@ var local = {
                 })
             }
         }
-        if (change) {
+        if (change && numFoundList < 100) {
             return local.generateSolutionList(solObj, appendArr);
         } else {
             return solList;
