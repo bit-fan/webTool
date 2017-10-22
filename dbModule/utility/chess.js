@@ -367,12 +367,10 @@ var self = module.exports = {
                 //check knight hinder
                 let midX = (knightX + jPosX) / 2;
                 let midY = (knightY + jPosY) / 2;
-                if ((midX - knightX) * (midX - knightX) < 1) {
-                    midX = knightX;
-                } else if ((midY - knightY) * (midY - knightY) < 1) {
-                    midY = knightY;
-                }
-                if (posArr.indexOf('' + midX + midY) == -1) {
+                midX = parseInt(midX) == midX ? midX : knightX;
+                midY = parseInt(midY) == midY ? midY : knightY;
+
+                if (!self.boardUtil('isExist', posArr, midX + '' + midY)) {
                     return true;
                 }
             }
@@ -386,14 +384,15 @@ var self = module.exports = {
             //checkPawn
             if (i > 5 && i < 11) {
                 let pawnX = parseInt(pos[0]), pawnY = parseInt(pos[1]);
-                if ((pawnX - jPosX) * (pawnX - jPosX) + (pawnY - jPosY) * (pawnY - jPosY) !== 1) {
+                if (Math.pow(pawnX - jPosX, 2) + Math.pow(pawnY - jPosY, 2) !== 1) {
                     continue;
                 }
-                if (side == 'r' && pawnY == jPosY + 1) {
-                    return true;
-                } else if (side == 'b' && pawnY == jPosY - 1) {
-                    return true;
+                if (side == 'r' && pawnY == jPosY - 1) {
+                    continue;
+                } else if (side == 'b' && pawnY == jPosY + 1) {
+                    continue;
                 }
+                return true;
             }
         }
 
