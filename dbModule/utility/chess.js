@@ -223,6 +223,9 @@ var self = module.exports = {
         }
     },
     getAllNextCheckingBoard(posArr, side){
+        if (posArr[0] == '51' && posArr[2] == '62' && posArr[4] == '00' && posArr[20] == '48' && posArr[31]=='42') {
+            console.log('gere');
+        }
         let nextStepArr = [];
         let offset = side === 'r' ? 0 : 16
         for (let j = offset; j < 16 + offset; j++) {
@@ -259,6 +262,9 @@ var self = module.exports = {
         });
     },
     getAllNextEscapingBoard(posArr, side){
+        if (posArr[0] == '41' && posArr[2] == '62' && posArr[4] == '00' && posArr[20] == '48' && posArr[31]=='42') {
+            console.log('gere');
+        }
         let nextStepArr = [];
         let offset = side === 'r' ? 0 : 16;
         for (let j = offset; j < 16 + offset; j++) {
@@ -287,10 +293,10 @@ var self = module.exports = {
             }
             nextStepArr = nextStepArr.concat(newBoardKeys);
         }
-        return nextStepArr.filter(posArr => {
+        return nextStepArr.filter(newArr => {
             // console.log('nextPos', posArr.join(''));
             // let rCheck= self.isChecking('r', posArr);
-            let check = self.isChecking(side === 'r' ? 'b' : 'r', posArr)
+            let check = self.isChecking(side === 'r' ? 'b' : 'r', newArr)
             return !check;
         });
     },
@@ -346,11 +352,11 @@ var self = module.exports = {
         // console.log('checking check', posArr.join(''));
         for (let i = 0; i < 11; i++) {
             // console.log('cur', i, posArr[i + offset]);
-            if (posArr[i + offset] === '00') {
-                continue;
-            }
+
             let pos = posArr[i + offset];
-            //check castle
+            if (pos === '00') {
+                continue;
+            }//check castle
             if (i === 0 || i === 1) {
                 let castle = self.boardUtil('between', posArr, pos, jPos);
                 if (castle.length == 0) {
@@ -359,7 +365,7 @@ var self = module.exports = {
             }
 
             //check knight
-            if (i === 2 || i === 3) {
+            else if (i === 2 || i === 3) {
                 let knightX = parseInt(pos[0]), knightY = parseInt(pos[1]);
                 if ((knightX - jPosX) * (knightX - jPosX) + (knightY - jPosY) * (knightY - jPosY) !== 5) {
                     continue;
@@ -375,14 +381,14 @@ var self = module.exports = {
                 }
             }
             //check cannon
-            if (i === 4 || i === 5) {
+            else if (i === 4 || i === 5) {
                 let cannon = self.boardUtil('between', posArr, pos, jPos);
                 if (cannon.length == 1) {
                     return true;
                 }
             }
             //checkPawn
-            if (i > 5 && i < 11) {
+            else if (i > 5 && i < 11) {
                 let pawnX = parseInt(pos[0]), pawnY = parseInt(pos[1]);
                 if (Math.pow(pawnX - jPosX, 2) + Math.pow(pawnY - jPosY, 2) !== 1) {
                     continue;
@@ -446,17 +452,14 @@ var self = module.exports = {
             return [];
         }
         let side = pieceArr.indexOf(curPos) < 16 ? 'r' : 'b';
-        let oppoSide = pieceArr[0] == 'r' ? 'b' : 'r';
+        let oppoSide = pieceArr.indexOf(curPos) < 16 ? 'b' : 'r';
         let nextArr = self.getAllPosInLine(curPos);
         let afterArr = nextArr.filter(pos => {
-            if (curPos == '31' && pos === '51' && pieceArr[31] === '51') {
-                console.log('here');
-            }
             let numPieceBetween = self.boardUtil('between', pieceArr, curPos, pos);
             if (numPieceBetween.length > 1) {
                 return false;
             }
-            if (numPieceBetween == 1) {
+            if (numPieceBetween.length == 1) {
                 return self.boardUtil('side', pieceArr, pos) === oppoSide;
             }
             if (numPieceBetween.length == 0) {

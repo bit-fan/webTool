@@ -3,19 +3,24 @@ const Chess = require('./utility/chess');
 
 var local = {
     getSolution(solObj, step, checkKey){
-        console.log('total keys', Object.keys(solObj.boardList).length, solObj.winList.length);
-        if (checkKey.length == 0 || solObj.winList.length > 19) {
+        console.log('total keys', Object.keys(solObj.boardList).length, checkKey.length, solObj.winList.length);
+        if (checkKey.length == 0) {
             return solObj;
         }
         let checkNowKey = [], nextCheckKey = [];
         while (checkKey.length > 0) {
 
-            let thisBoardKey = checkKey[0], curRound = thisBoardKey[0];
-            if(thisBoardKey=='b1000600040003271000000476939004921000000180013283800005162700041'){
-                console.log('f');
+            let startObj = solObj.boardList[solObj.startKey];
+            if (startObj.status) {
+                break;
             }
+
+            let thisBoardKey = checkKey[0], curRound = thisBoardKey[0];
             let thisBoardObj = solObj.boardList[thisBoardKey];
             let nextboardArr = [];
+            if(thisBoardKey=='r5100620000000000000000470000005937003272480028680000000000000040'){
+                console.log('mow');
+            }
             if (thisBoardKey.startsWith('r')) {
                 nextboardArr = Chess.getAllNextCheckingBoard(solObj.boardList[thisBoardKey].posArr, 'r');
             } else {
@@ -32,6 +37,7 @@ var local = {
                     thisBoardObj.maxLose = 1;
                     solObj.winList.push(thisBoardKey);
                 }
+                //already had result, remove unneccessary checkings
                 checkNowKey = checkNowKey.concat(thisBoardObj.from);
             } else {
                 nextboardArr.forEach(posArr => {
@@ -51,11 +57,17 @@ var local = {
                         nextCheckKey.push(newKey)
                     }
                     solObj.boardList[thisBoardKey].nextAllKey.push(newKey);
-
                 })
             }
-            checkKey.splice(0, 1);
+            checkKey.splice(0, 1); //this key done
+
+            //check whether have immediate checkings, checknowKey is the arr of keys where  the next step is an end
             while (checkNowKey.length > 0) {
+                let startObj = solObj.boardList[solObj.startKey];
+                if (startObj.status) {
+                    break;
+                }
+
                 let thisKeyObj = solObj.boardList[checkNowKey[0]];
                 let thisRound = checkNowKey[0][0];
                 let oppoRound = thisRound == 'r' ? 'b' : 'r';
@@ -65,6 +77,7 @@ var local = {
                     let childObj = solObj.boardList[childKey];
                     let childStatus = childObj.status;
                     if (childStatus && childStatus[0] === thisRound) {
+                        //self will win at next round
                         if (childStatus === thisRound + 'LastWin') {
                             thisKeyObj.nextWinKey.push(childKey + '#' + 1);
                         } else {
@@ -75,32 +88,53 @@ var local = {
                         thisKeyObj.minWin = Math.min(thisKeyObj.minWin, childObj.maxLose);
                         hasChange = true;
                     } else if (childStatus && childStatus[0] === oppoRound) {
+                        //opponent will win at next round
                         if (childStatus === oppoRound + 'LastWin') {
                             thisKeyObj.nextLoseKey.push(childKey + '#' + 1);
                         } else {
                             thisKeyObj.nextLoseKey.push(childKey + '#' + (1 + childObj.minWin));
                         }
                         thisKeyObj.maxLose = thisKeyObj.maxLose || -1;
-                        thisKeyObj.maxLose = Math.max(thisKeyObj.maxLose, childObj.minWin);
+                        thisKeyObj.maxLose = Math.max(thisKeyObj.maxLose, 1 + childObj.minWin);
                         hasChange = true;
                     } else {
                         newNextAllKey.push(childKey);
                     }
                 })
                 thisKeyObj.nextAllKey = newNextAllKey;
-                if (thisKeyObj.nextWinKey.length >= solObj.maxNumSolution) {
-                    // solObj.winList.push(checkNowKey[0]);
-                }
+                // if (thisKeyObj.nextWinKey.length >= solObj.maxNumSolution) {
+                //     // solObj.winList.push(checkNowKey[0]);
+                // }
                 if (thisKeyObj.nextAllKey.length == 0 && thisKeyObj.nextWinKey.length == 0) {
 
                     thisKeyObj.maxLose = thisKeyObj.nextLoseKey.map(key => {
                         let arr = key.split('#');
                         return parseInt(arr[1]);
-                    }).reduce((cur, prev) => {
+                    }).reduce((prev, cur) => {
                         return prev > cur ? prev : cur;
                     })
+                    if (!thisKeyObj.status) {
+                        hasChange = true;
+                    }
                     thisKeyObj.status = oppoRound + 'Win';
-                    hasChange = true;
+                }
+                if (thisKeyObj.nextWinKey.length > 0) {
+                    thisKeyObj.minWin = thisKeyObj.nextWinKey.reduce((prev, key) => {
+                        let numWin = 1 + parseInt(key.split('#')[1]);
+                        return Math.min(numWin, prev);
+                    }, 99999999);
+                    if (!thisKeyObj.status) {
+                        hasChange = true;
+                    }
+                    thisKeyObj.status = thisRound + 'Win';
+                }
+                if (thisKeyObj.nextWinKey.length >= solObj.maxNumSolution) {
+                    //remove from
+                    thisKeyObj.nextAllKey.forEach(key => {
+                        let fromKeyArr = solObj.boardList[key].from;
+                        let removeIdx = fromKeyArr.indexOf(key);
+                        fromKeyArr.splice(removeIdx, 1);
+                    })
                 }
                 if (hasChange) {
                     checkNowKey = checkNowKey.concat(thisKeyObj.from);
@@ -112,6 +146,7 @@ var local = {
         return local.getSolution(solObj, step + 1, nextCheckKey);
     },
     generateSolutionList(solObj, solList){
+        console.log('solList', solList.length);
         let appendArr = [];
         let change = false;
         let numFoundList = 0;
@@ -119,9 +154,15 @@ var local = {
             let keyArr = solList[i];
             let lastKey = keyArr.slice(-1);
             let lastKeyObj = solObj.boardList[lastKey];
+            if (lastKeyObj.minWin < 2) {
+                appendArr.push(keyArr);
+                numFoundList++;
+            }
             if (lastKeyObj.status && lastKeyObj.status.indexOf('rLastWin') != -1) {
                 appendArr.push(keyArr);
                 numFoundList++;
+            } else if (lastKey[0][0] === 'b' && lastKeyObj.nextWinKey.length > 0) {
+                console.log('no');
             } else if (lastKeyObj.nextWinKey.length > 0) {
                 lastKeyObj.nextWinKey.forEach(newKey => {
                     if (keyArr.indexOf(newKey.split('#')[0]) === -1) {
@@ -132,7 +173,10 @@ var local = {
                     }
                 })
             } else if (lastKeyObj.nextLoseKey.length > 0) {
-                lastKeyObj.nextLoseKey.forEach(newKey => {
+                lastKeyObj.nextLoseKey.filter(key => {
+                    let num = key.split('#')[1];
+                    return parseInt(num) > 1;
+                }).forEach(newKey => {
                     if (keyArr.indexOf(newKey.split('#')[0]) === -1) {
                         let newArr = Array.from(keyArr);
                         newArr.push(newKey.split('#')[0]);
@@ -152,7 +196,7 @@ var local = {
 
     simplifySol(solObj){
         let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
-        return {startKey: solObj.startKey, solList: solList};//, steps: finalObj
+        return {startKey: solObj.startKey, solList: solList, fullObj: solObj};//, steps: finalObj
 
     },
 }
@@ -165,7 +209,7 @@ var socket = {
             startKey: reqKey,
             boardList: {},
             winList: [],
-            maxNumSolution: 3
+            maxNumSolution: 1
         };
         solObj.boardList[reqKey] = {
             posArr: Chess.getPosArrFromKey(reqKey),
