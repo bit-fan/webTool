@@ -223,7 +223,7 @@ var self = module.exports = {
         }
     },
     getAllNextCheckingBoard(posArr, side){
-        if (posArr[0] == '51' && posArr[2] == '62' && posArr[4] == '00' && posArr[20] == '48' && posArr[31]=='42') {
+        if (posArr[0] == '51' && posArr[2] == '62' && posArr[4] == '00' && posArr[20] == '48' && posArr[31] == '42') {
             console.log('gere');
         }
         let nextStepArr = [];
@@ -262,7 +262,7 @@ var self = module.exports = {
         });
     },
     getAllNextEscapingBoard(posArr, side){
-        if (posArr[0] == '41' && posArr[2] == '62' && posArr[4] == '00' && posArr[20] == '48' && posArr[31]=='42') {
+        if (posArr[0] == '41' && posArr[2] == '62' && posArr[4] == '00' && posArr[20] == '48' && posArr[31] == '42') {
             console.log('gere');
         }
         let nextStepArr = [];
@@ -588,35 +588,72 @@ var self = module.exports = {
             }
             return pre + next;
         }, 0)
-        console.log(key1, key2, pieceName, diffKey1, diffKey2);
-        let oriPos, newPos, direction, pos1, pos2;
-        if ('cpj'.indexOf[pieceName] != -1) {
-            pos1 = diffKey1.slice(0, 2) == diffKey2.slice(0, 2) ? diffKey1.slice(2) : diffKey1.slice(0, 2);
-            pos2 = diffKey1.slice(2) == diffKey2.slice(2) ? diffKey2.slice(0, 2) : diffKey2.slice(2);
-            if (diffKey1[0] != diffKey1[2]) {//not in one col
-                oriPos = pos1[0];
-            } else {//in one col
-                if (2 * parseInt(pos1[1]) > parseInt(diffKey1[0]) + parseInt(diffKey1[2])) {
-                    oriPos = "big"
-                } else {
-                    oriPos = 'small';
-                }
+        let fixedPos, oriPos, newPos, direction, pos1, pos2;
+        if (diffKey1.slice(0, 2) == diffKey2.slice(0, 2)) {
+            //first piece same
+            pos1 = diffKey1.slice(2);
+            pos2 = diffKey2.slice(2);
+            fixedPos = diffKey1.slice(0, 2);
+        } else {
+            //first piece diff
+            pos1 = diffKey1.slice(0, 2);
+            pos2 = diffKey2.slice(0, 2);
+            fixedPos = diffKey1.slice(2);
+        }
+        console.log(key1, key2, pieceName, diffKey1, diffKey2, pos1, pos2);
+
+        if (pos1[0] == pos2[0]) {
+            newPos = Math.abs(parseInt(pos1[1]) - parseInt(pos2[1]));
+        } else {
+            newPos = k1[0] == 'b' ? pos2[0] : (10 - parseInt(pos2[0]));
+        }
+
+        if (pos1[1] == pos2[1]) {
+            direction = 'hor';
+        } else if (pos1[1] < pos2[1]) {
+            direction = k1[0] == 'b' ? 'fwd' : 'bwd';
+        } else {
+            direction = k1[0] == 'r' ? 'fwd' : 'bwd';
+        }
+
+        if (pieceName != 'b') {
+            if (diffKey1[0] == diffKey1[2]) {
+                //same vertical line
+                let changePiece = pos1[1] > fixedPos[1] ? 1 : -1;
+                let multi = k1[0] == 'b' ? 1 : -1;
+                oriPos = changePiece * multi > 0 ? 'front' : 'back';
+            } else {
+                oriPos = k1[0] == 'b' ? pos1[0] : (10 - parseInt(pos1[0]));
             }
-            if (pos1[0] == pos2[0]) {//move vertical
-                direction = pos2[1] > pos1[1] ? 1 : -1;
-                newPos = parseInt(pos2[1]) - parseInt(pos1[1]);
-            } else {//move hori
-                direction = 0;
-                newPos = pos2[0];
-            }
-
-        } else if ('msx'.indexOf[pieceName] != -1) {
-
-        } else if (pieceName == 'b') {
-
-            // } else if (pieceName == 'j') {
 
         }
+        // if ('cpj'.indexOf[pieceName] != -1) {
+        //     pos1 = diffKey1.slice(0, 2) == diffKey2.slice(0, 2) ? diffKey1.slice(2) : diffKey1.slice(0, 2);
+        //     pos2 = diffKey1.slice(2) == diffKey2.slice(2) ? diffKey2.slice(0, 2) : diffKey2.slice(2);
+        //     if (diffKey1[0] != diffKey1[2]) {//not in one col
+        //         oriPos = pos1[0];
+        //     } else {//in one col
+        //         if (2 * parseInt(pos1[1]) > parseInt(diffKey1[0]) + parseInt(diffKey1[2])) {
+        //             oriPos = "big"
+        //         } else {
+        //             oriPos = 'small';
+        //         }
+        //     }
+        //     if (pos1[0] == pos2[0]) {//move vertical
+        //         direction = pos2[1] > pos1[1] ? 1 : -1;
+        //         newPos = parseInt(pos2[1]) - parseInt(pos1[1]);
+        //     } else {//move hori
+        //         direction = 0;
+        //         newPos = pos2[0];
+        //     }
+        //
+        // } else if ('msx'.indexOf[pieceName] != -1) {
+        //
+        // } else if (pieceName == 'b') {
+        //
+        //     // } else if (pieceName == 'j') {
+        //
+        // }
 
         // let diffPos = [];
         // for (let i = 1; i < key1.length; i = i + 2) {

@@ -359,52 +359,78 @@
                 $('#solutionDiv').html('');
                 let nowKey = srcObj.startKey;
                 nowKey = null;
-                while (srcObj.steps[nowKey]) {
-                    let stepObj = srcObj.steps[nowKey].nextSteps[0];
-                    if (!stepObj) {
-                        break;
-                    }
-                    let coef = nowKey[0] == 'b' ? 1 : -1;
+                let curObj = srcObj.steps[0];
+                while (curObj.next.length > 0) {
+                    let length = Object.keys(curObj.next).length;
+                    let nextNameObj = curObj.next[length-1];
+                    let nameArr = nextNameObj[Object.keys(nextNameObj)[0]];
                     let newDiv = $('#moveStepDiv').clone().removeClass('collapse');
-                    let preName = '';
-                    if (stepObj.name[1] == 'big') {
-                        preName = coef;
-                    } else if (stepObj.name[1] == 'small') {
-                        preName = -coef;
-                    } else {
-                        preName = '';
+                    const pieceNameObj = {
+                        c: "车",
+                        m: "马",
+                        p: "炮",
+                        b: "兵",
+                        s: "士",
+                        x: "相",
+                        j: "将",
                     }
-                    switch (preName) {
-                        case 1:
-                            $(newDiv).find('.prePieceName').text('qian');
-                            break;
-                        case -1:
-                            $(newDiv).find('.prePieceName').text('hou');
-                            break;
-                        case '':
-                            $(newDiv).find('.prePieceName').text('');
-                            break;
+                    const dirObj = {
+                        fwd: '进',
+                        bwd: '退',
+                        hor: '平'
                     }
-                    $(newDiv).find('.prePieceName').text();
-                    $(newDiv).find('img').attr('src', getPieceImgStr(nowKey[0] + stepObj.name[0]));
-                    switch (stepObj.name[2] * coef) {
-                        case 0:
-                            $(newDiv).find('.direction').text('ping');
-                            break;
-                        case 1:
-                            $(newDiv).find('.direction').text('jin');
-                            break;
-                        case -1:
-                            $(newDiv).find('.direction').text('tui');
-                            break;
-                    }
-                    $(newDiv).find('.moveQty').text(stepObj.name[3]);
+
+                    $(newDiv).find('.pieceText').text(pieceNameObj[nameArr[0]]);
+                    $(newDiv).find('.afterPieceName').text(nameArr[1]);
+                    $(newDiv).find('.direction').text(dirObj[nameArr[2]]);
+                    $(newDiv).find('.moveQty').text(nameArr[3]);
                     $('#solutionDiv').append(newDiv);
-                    // if (stepObj.nextSteps && stepObj.nextSteps[0]) {
-                    nowKey = stepObj.key
-                    // } else {
-                    //     nowKey = '';
+                    curObj = srcObj.steps[Object.keys(nextNameObj)[0]];
+                    // let stepObj = srcObj.steps[nowKey].nextSteps[0];
+                    // if (!stepObj) {
+                    //     break;
                     // }
+                    // let coef = nowKey[0] == 'b' ? 1 : -1;
+                    // let newDiv = $('#moveStepDiv').clone().removeClass('collapse');
+                    // let preName = '';
+                    // if (stepObj.name[1] == 'big') {
+                    //     preName = coef;
+                    // } else if (stepObj.name[1] == 'small') {
+                    //     preName = -coef;
+                    // } else {
+                    //     preName = '';
+                    // }
+                    // switch (preName) {
+                    //     case 1:
+                    //         $(newDiv).find('.prePieceName').text('qian');
+                    //         break;
+                    //     case -1:
+                    //         $(newDiv).find('.prePieceName').text('hou');
+                    //         break;
+                    //     case '':
+                    //         $(newDiv).find('.prePieceName').text('');
+                    //         break;
+                    // }
+                    // $(newDiv).find('.prePieceName').text();
+                    // $(newDiv).find('img').attr('src', getPieceImgStr(nowKey[0] + stepObj.name[0]));
+                    // switch (stepObj.name[2] * coef) {
+                    //     case 0:
+                    //         $(newDiv).find('.direction').text('ping');
+                    //         break;
+                    //     case 1:
+                    //         $(newDiv).find('.direction').text('jin');
+                    //         break;
+                    //     case -1:
+                    //         $(newDiv).find('.direction').text('tui');
+                    //         break;
+                    // }
+                    // $(newDiv).find('.moveQty').text(stepObj.name[3]);
+                    // $('#solutionDiv').append(newDiv);
+                    // // if (stepObj.nextSteps && stepObj.nextSteps[0]) {
+                    // nowKey = stepObj.key
+                    // // } else {
+                    // //     nowKey = '';
+                    // // }
                 }
                 // label.prePieceName
                 // img.smallPieceSize

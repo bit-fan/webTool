@@ -18,9 +18,6 @@ var local = {
             let thisBoardKey = checkKey[0], curRound = thisBoardKey[0];
             let thisBoardObj = solObj.boardList[thisBoardKey];
             let nextboardArr = [];
-            if(thisBoardKey=='r5100620000000000000000470000005937003272480028680000000000000040'){
-                console.log('mow');
-            }
             if (thisBoardKey.startsWith('r')) {
                 nextboardArr = Chess.getAllNextCheckingBoard(solObj.boardList[thisBoardKey].posArr, 'r');
             } else {
@@ -146,7 +143,6 @@ var local = {
         return local.getSolution(solObj, step + 1, nextCheckKey);
     },
     generateSolutionList(solObj, solList){
-        console.log('solList', solList.length);
         let appendArr = [];
         let change = false;
         let numFoundList = 0;
@@ -193,12 +189,41 @@ var local = {
         }
 
     },
+    getStepsData(solList){
+        let keytoId = {}, storedObj = {}, idx = 0;
+        solList.forEach(keyList => {
+            keyList.forEach(key => {
+                if (!keytoId[key]) {
+                    storedObj[idx] = {curBoard: key, next: []};
+                    keytoId[key] = idx;
+                    idx++;
+                }
+            })
+            for (let i = 0, l = keyList.length; i < l; i++) {
+                if (keyList[i + 1]) {
+                    let curKey = keyList[i];
+                    let nextKey = keyList[i + 1];
+                    let curId = keytoId[curKey];
+                    let nextId = keytoId[nextKey];
 
-    simplifySol(solObj){
-        let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
-        return {startKey: solObj.startKey, solList: solList, fullObj: solObj};//, steps: finalObj
+                    let isAdded = false;
+                    storedObj[curId].next.forEach(obj => {
+                        if (Object.keys(obj)[0] === nextId) {
+                            isAdded = true;
+                        }
+                    })
+                    if (!isAdded) {
+                        let addObj = {};
+                        addObj[nextId] = Chess.getMoveName(curKey, nextKey);
+                        storedObj[curId].next.push(addObj);
+                    }
+                }
+            }
 
-    },
+        })
+        return storedObj;
+
+    }
 }
 var socket = {
     chessValidateBoard: function (req) {
@@ -223,7 +248,9 @@ var socket = {
 
         solObj = local.getSolution(solObj, 0, [reqKey]);
         console.log('solObj', JSON.stringify(solObj));
-        return local.simplifySol(solObj);
+        let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
+        let steps = local.getStepsData(solList);
+        return {startKey: solObj.startKey, solList: solList, steps: steps};//, fullObj: solObj};
     }
 }
 module.exports = {func: local, socket: socket}
