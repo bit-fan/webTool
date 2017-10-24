@@ -208,7 +208,7 @@ var local = {
 
                     let isAdded = false;
                     storedObj[curId].next.forEach(obj => {
-                        if (Object.keys(obj)[0] === nextId) {
+                        if (Object.keys(obj)[0] == nextId) {
                             isAdded = true;
                         }
                     })
@@ -249,8 +249,14 @@ var socket = {
         solObj = local.getSolution(solObj, 0, [reqKey]);
         console.log('solObj', JSON.stringify(solObj));
         let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
+
+        let maxSolLeng = 0;
+        solList.forEach(list => {
+            maxSolLeng = Math.max(list.length, maxSolLeng);
+        })
         let steps = local.getStepsData(solList);
-        return {startKey: solObj.startKey, solList: solList, steps: steps};//, fullObj: solObj};
+        console.log({startKey: solObj.startKey, solList: solList, steps: steps});
+        return {startKey: solObj.startKey, solList: solList, steps: steps, maxSolLength: maxSolLeng};//, fullObj: solObj};
     }
 }
 module.exports = {func: local, socket: socket}

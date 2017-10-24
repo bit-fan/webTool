@@ -69,12 +69,27 @@ img:not([src]) {
 }
 
 #infoDiv {
-    padding: 5px;
+    padding: 15px;
 }
 
 #infoDiv > .infoType {
     padding: 5px;
     outline: red solid 1px;
+}
+
+.playFuncRow {
+    padding: 5px;
+}
+
+.playFuncRow img {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.stepText {
+    margin-left: 5px;
+    margin-right: 5px;
+
 }
 
 /*#hideboarddiv {*/

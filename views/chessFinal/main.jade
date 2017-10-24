@@ -26,7 +26,7 @@ link(rel='stylesheet', href='/css/chess.css')
             li
                 button#btnResetBoard 重置
             li
-                button 布局
+                button#getTemp getTemp
         div
             label top
                 input#top(type='number', style='width:100px')
@@ -70,6 +70,18 @@ link(rel='stylesheet', href='/css/chess.css')
                 | 错误数量&nbsp;&nbsp;&nbsp;
                 span#boardPieceQtyValidText
         #solutionDiv
+            .row.playFuncRow
+                .col-12
+                    img(width=30 height=30 src='../../src/img/chess/func/previous-track.svg')
+                    img(width=30 height=30 src='../../src/img/chess/func/play-button.svg')
+                    img(width=30 height=30 src='../../src/img/chess/func/pause-button.svg')
+                    img(width=30 height=30 src='../../src/img/chess/func/next-track-button.svg')
+            .row
+                .col-7
+                    table#stepTable
+                .col-5
+
+
 
 
 #pieceCandicateDiv
@@ -82,3 +94,7 @@ link(rel='stylesheet', href='/css/chess.css')
     label.afterPieceName
     label.direction
     label.moveQty
+#sampleStepDiv.collpase
+    span.orderId
+    span.stepText.rStep.alignTop
+    span.stepText.bStep.alignBottom

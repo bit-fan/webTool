@@ -4,7 +4,8 @@
         var mySkt;
         var curBoardTag, curPieceFolder, curPieceExt, baseData = {}, finalBoard = {},
             mouseDownFlag = false, finalBoardKey = '';
-        var dragEvtObj = {};
+        var MoveStepSpeed = 1000, dragEvtObj = {};
+
         const boardObj = {
             board0: {
                 img: "board0.jpg",
@@ -326,6 +327,7 @@
         function submitBoard() {
             mySkt.send('chessStartBoard', finalBoardKey, resData => {
                 console.log('res', resData);
+                console.log('res', JSON.stringify(resData));
                 displayInfo('solution', resData);
             }, failData => {
                 console.log(failData);
@@ -358,11 +360,12 @@
                 $('#solutionDiv').removeClass('collapse');
                 $('#solutionDiv').html('');
                 let nowKey = srcObj.startKey;
+                initSolutionDiv(srcObj);
                 nowKey = null;
                 let curObj = srcObj.steps[0];
                 while (curObj.next.length > 0) {
                     let length = Object.keys(curObj.next).length;
-                    let nextNameObj = curObj.next[length-1];
+                    let nextNameObj = curObj.next[length - 1];
                     let nameArr = nextNameObj[Object.keys(nextNameObj)[0]];
                     let newDiv = $('#moveStepDiv').clone().removeClass('collapse');
                     const pieceNameObj = {
@@ -509,6 +512,95 @@
                 })
         }
 
+        function initSolutionDiv(srcObj) {
+            let $div = $('#solutionDiv');
+            let solutionObj = {
+                prevHighlightStep: 0,
+                curHighlightStep: 0,
+                stepArr: [{
+                    board: srcObj.steps[0].curBoard,
+                    nextArr: srcObj.steps[0].next,
+                    nextChoice: 0
+                }],
+                stepObj: srcObj.steps,
+                maxStep: 10
+            }
+            let $stepTable = $div.find('#stepTable');
+            $stepTable.html('');
+            let tdTemplate = $('#sampleStepDiv');
+
+            for (let i = 0; i < srcObj.maxSolLength / 2; i++) {
+                let newTr = $('<tr>');
+                newTr.append('<td>' + (i + 1) + '</td>');
+                newTr.append($('<td>', {
+                    class: 'step rStep'
+                }).attr('turn', parseInt(i * 2)));
+                newTr.append($('<td>', {
+                    class: 'step bStep'
+                }).attr('turn', parseInt(i * 2 + 1)));
+
+                $stepTable.append(newTr);
+            }
+            $stepTable.append($stepTable);
+            $div.on('click', '.playFuncRow img', function () {
+                console.log('play btn click', this);
+            }).on('click', '.stepText', function () {
+                console.log('step click', this);
+            })
+            drawFromSolStep(solutionObj, 0);
+            return solutionObj;
+        }
+
+        const pieceNameObj = {
+            c: "车",
+            m: "马",
+            p: "炮",
+            b: "兵",
+            s: "士",
+            x: "相",
+            j: "将",
+        }
+        const directionObj = {
+            fwd: '进',
+            bwd: '退',
+            hor: '平'
+        }
+
+        function generateMoveName(moveObj) {
+            let pieceName = pieceNameObj[moveObj.pieceName];
+            let dire = directionObj[moveObj.direction];
+            return pieceName + moveObj.oriPos + dire + moveObj.newPos;
+        }
+
+        function drawFromSolStep(solObj, step) {
+            if (solObj.stepArr.length <= step) {
+                return;
+            }
+            let curObj = solObj.stepArr[step];
+            drawBoardKey(curObj.board);
+            if (!curObj.nextArr) {
+                return
+            }
+            let nextStep = curObj.nextArr[curObj.nextChoice];
+            let nextStepId = Object.keys(nextStep)[0];
+            let moveObj = nextStep[nextStepId];
+            let moveName = generateMoveName(moveObj) + (curObj.nextArr.length > 1 ? '*' : '');
+            $('table#stepTable').find('[turn=' + step + ']').text(moveName);
+            solObj.stepArr[step + 1] = {
+                board: solObj.stepObj[nextStepId].curBoard,
+                nextArr: solObj.stepObj[nextStepId].next,
+                nextChoice: 0
+            }
+            return setTimeout(function () {
+                drawFromSolStep(solObj, step + 1)
+            }, MoveStepSpeed)
+
+        }
+
+        function drawBoardKey(boardKey) {
+
+        }
+
         return {
 
             init: function (skt) {
@@ -529,14 +621,26 @@
                         drawBoard();
                     })
                 });
-                $('#btnSetupBoard').on('click', () => {
-                    initSetupBoard();
-                });
-                $('#btnResetBoard').on('click', () => {
-                    resetBoard();
-                })
-                $('#btnSubmitBoard').on('click', () => {
-                    submitBoard();
+                $('#boardFuncList').on('click', function (event) {
+                    let id = $(event.target).attr('id');
+                    switch (id) {
+                        case 'btnSetupBoard':
+                            initSetupBoard();
+                            break;
+                        case 'btnResetBoard':
+                            resetBoard();
+                            break;
+                        case 'btnSubmitBoard':
+                            submitBoard();
+                            break;
+                        case 'getTemp':
+                            let resData = JSON.parse('{"startKey":"r2355000000004400000000000000005968807700000000000000005162000041","solList":[["r2355000000004400000000000000005968807700000000000000005162000041","b4355000000004400000000000000005968807700000000000000005162000041","r4355000000004400000000000000005968807700000000000000004262000041","b4255000000004400000000000000005968807700000000000000000062000041","r0055000000004400000000000000005968807700000000000000000062000042","b0055000000004300000000000000005968807700000000000000000062000042","r0055000000004300000000000000005968807700000000000000000062000041","b0055000000004200000000000000005968807700000000000000000062000041","r0055000000000000000000000000005968807700000000000000000062000042","b0045000000000000000000000000005968807700000000000000000062000042"],["r2355000000004400000000000000005968807700000000000000005162000041","b4355000000004400000000000000005968807700000000000000005162000041","r4355000000004400000000000000005968807700000000000000004262000041","b4255000000004400000000000000005968807700000000000000000062000041","r0055000000004400000000000000005968807700000000000000000062000042","b0055000000004300000000000000005968807700000000000000000062000042","r0055000000004300000000000000005968807700000000000000000062000041","b0055000000004200000000000000005968807700000000000000000062000041","r0055000000004200000000000000005968807700000000000000000062000040","b0055000000004100000000000000005968807700000000000000000062000040","r0055000000000000000000000000005968807700000000000000000062000041","b0045000000000000000000000000005968807700000000000000000062000041"]],"steps":{"0":{"curBoard":"r2355000000004400000000000000005968807700000000000000005162000041","next":[{"1":{"pieceName":"c","oriPos":8,"direction":"hor","newPos":6,"pos1":"23","pos2":"43"}}]},"1":{"curBoard":"b4355000000004400000000000000005968807700000000000000005162000041","next":[{"2":{"pieceName":"s","oriPos":"5","direction":"fwd","newPos":"4","pos1":"51","pos2":"42"}}]},"2":{"curBoard":"r4355000000004400000000000000005968807700000000000000004262000041","next":[{"3":{"pieceName":"c","oriPos":6,"direction":"fwd","newPos":1,"pos1":"43","pos2":"42"}}]},"3":{"curBoard":"b4255000000004400000000000000005968807700000000000000000062000041","next":[{"4":{"pieceName":"j","oriPos":"4","direction":"fwd","newPos":1,"pos1":"41","pos2":"42"}}]},"4":{"curBoard":"r0055000000004400000000000000005968807700000000000000000062000042","next":[{"5":{"pieceName":"b","direction":"fwd","newPos":1,"pos1":"44","pos2":"43"}}]},"5":{"curBoard":"b0055000000004300000000000000005968807700000000000000000062000042","next":[{"6":{"pieceName":"j","oriPos":"4","direction":"bwd","newPos":1,"pos1":"42","pos2":"41"}}]},"6":{"curBoard":"r0055000000004300000000000000005968807700000000000000000062000041","next":[{"7":{"pieceName":"b","direction":"fwd","newPos":1,"pos1":"43","pos2":"42"}}]},"7":{"curBoard":"b0055000000004200000000000000005968807700000000000000000062000041","next":[{"8":{"pieceName":"j","oriPos":"4","direction":"fwd","newPos":1,"pos1":"41","pos2":"42"}},{"11":{"pieceName":"j","oriPos":"4","direction":"bwd","newPos":1,"pos1":"41","pos2":"40"}}]},"8":{"curBoard":"r0055000000000000000000000000005968807700000000000000000062000042","next":[{"9":{"pieceName":"c","oriPos":5,"direction":"hor","newPos":6,"pos1":"55","pos2":"45"}}]},"9":{"curBoard":"b0045000000000000000000000000005968807700000000000000000062000042","next":[]},"10":{"curBoard":"r2355000000004400000000000000005968807700000000000000005162000041","next":[{"1":{"pieceName":"c","oriPos":8,"direction":"hor","newPos":6,"pos1":"23","pos2":"43"}}]},"11":{"curBoard":"r0055000000004200000000000000005968807700000000000000000062000040","next":[{"12":{"pieceName":"b","direction":"fwd","newPos":1,"pos1":"42","pos2":"41"}}]},"12":{"curBoard":"b0055000000004100000000000000005968807700000000000000000062000040","next":[{"13":{"pieceName":"j","oriPos":"4","direction":"fwd","newPos":1,"pos1":"40","pos2":"41"}}]},"13":{"curBoard":"r0055000000000000000000000000005968807700000000000000000062000041","next":[{"14":{"pieceName":"c","oriPos":5,"direction":"hor","newPos":6,"pos1":"55","pos2":"45"}}]},"14":{"curBoard":"b0045000000000000000000000000005968807700000000000000000062000041","next":[]}},"maxSolLength":12}');
+                            // displayInfo('solution', resData);
+                            initSolutionDiv(resData);
+                            break;
+
+                    }
+                    return true;
                 })
 
                 // submitBoard

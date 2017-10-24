@@ -150,7 +150,7 @@ var self = module.exports = {
                 isValid = false;
                 allValid = false;
             } else if (pieceName == 'rb') {
-                if (pos % 10 < 4) {
+                if (pos % 10 < 5) {
 
                 } else if (rbPosList.indexOf(pos) != -1) {
                     rbPosList = rbPosList.filter(item => {
@@ -162,7 +162,7 @@ var self = module.exports = {
                     allValid = false;
                 }
             } else if (pieceName == 'bb') {
-                if (pos % 10 > 6) {
+                if (pos % 10 > 4) {
 
                 } else if (bbPosList.indexOf(pos) != -1) {
                     bbPosList = bbPosList.filter(item => {
@@ -673,6 +673,6 @@ var self = module.exports = {
         // let pieceName = (diffPos[0] > 15 ? 'b' : 'r') + piecePosName[diffPos[0]];
         // console.log(pieceName, diffPos)
         // console.log(pos1, pos2, pieceName, oriPos, direction, newPos);
-        return [pieceName, oriPos, direction, newPos];
+        return {pieceName, oriPos, direction, newPos, pos1, pos2};
     }
 }
