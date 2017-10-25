@@ -72,10 +72,14 @@ link(rel='stylesheet', href='/css/chess.css')
         #solutionDiv
             .row.playFuncRow
                 .col-12
-                    img(width=30 height=30 src='../../src/img/chess/func/previous-track.svg')
-                    img(width=30 height=30 src='../../src/img/chess/func/play-button.svg')
-                    img(width=30 height=30 src='../../src/img/chess/func/pause-button.svg')
-                    img(width=30 height=30 src='../../src/img/chess/func/next-track-button.svg')
+                    a
+                        img#animatePreStep(width=30 height=30 src='../../src/img/chess/func/previous-track.svg')
+                    a
+                        img#animatePlayStep(width=30 height=30 src='../../src/img/chess/func/play-button.svg')
+                    a
+                        img#animatePauseStep(width=30 height=30 src='../../src/img/chess/func/pause-button.svg')
+                    a
+                        img#animateNextStep(width=30 height=30 src='../../src/img/chess/func/next-track-button.svg')
             .row
                 .col-7
                     table#stepTable

@@ -4,7 +4,7 @@
         var mySkt;
         var curBoardTag, curPieceFolder, curPieceExt, baseData = {}, finalBoard = {},
             mouseDownFlag = false, finalBoardKey = '';
-        var MoveStepSpeed = 1000, dragEvtObj = {};
+        var MoveStepSpeed = 100, solutionObj = {}, dragEvtObj = {};
 
         const boardObj = {
             board0: {
@@ -271,11 +271,7 @@
 
         }
 
-        function resetBoard() {
-            $('#chessboarddiv').find('img').each(function () {
-                console.log('$(this)', $(this));
-                $(this).parent().empty().append('<img class="pieceSize">');
-            });
+        function resetSetupBoard() {
             finalBoard = {};
             let row1 = $('<div>').attr('id', 'piecerow1');
             let row2 = $('<div>').attr('id', 'piecerow2');
@@ -296,8 +292,11 @@
             $('#piecesList').html('').append(row1).append(row2);
         }
 
-        function initSetupBoard() {
-            resetBoard();
+        function initBoardPiecePos() {
+            $('#chessboarddiv').find('img').each(function () {
+                console.log('$(this)', $(this));
+                $(this).parent().empty().append('<img class="pieceSize">');
+            });
 
             $.each(baseData.boardMatrix, (k, v) => {
                 console.log('v.col, v.row, v.availPieceArr', v.col, v.row, v.availPieceArr);
@@ -312,6 +311,11 @@
                 // changePiece('.test' + v.col + v.row, v.col, v.row, v.availPieceArr, 0);
 
             })
+        }
+
+        function initSetupBoard() {
+            resetSetupBoard();
+            initBoardPiecePos();
             setDragEvt();
         }
 
@@ -319,6 +323,8 @@
             let width = $('#piecesListWrapper').width();
             $('#chessboarddiv').css('background-image', 'url(' + baseData.board.img + ')');
             $('#chessboarddiv').height(width * baseData.board.height / baseData.board.width);
+            initBoardPiecePos();
+
 
             // testPos(baseData.board.mTop, baseData.board.mBtm, baseData.board.mLeft, baseData.board.mRight);
             // testPiece();
@@ -358,83 +364,83 @@
             } else if (type == 'solution') {
                 $('#validCheckResult').addClass('collapse');
                 $('#solutionDiv').removeClass('collapse');
-                $('#solutionDiv').html('');
+                // $('#solutionDiv').html('');
                 let nowKey = srcObj.startKey;
-                initSolutionDiv(srcObj);
-                nowKey = null;
-                let curObj = srcObj.steps[0];
-                while (curObj.next.length > 0) {
-                    let length = Object.keys(curObj.next).length;
-                    let nextNameObj = curObj.next[length - 1];
-                    let nameArr = nextNameObj[Object.keys(nextNameObj)[0]];
-                    let newDiv = $('#moveStepDiv').clone().removeClass('collapse');
-                    const pieceNameObj = {
-                        c: "车",
-                        m: "马",
-                        p: "炮",
-                        b: "兵",
-                        s: "士",
-                        x: "相",
-                        j: "将",
-                    }
-                    const dirObj = {
-                        fwd: '进',
-                        bwd: '退',
-                        hor: '平'
-                    }
-
-                    $(newDiv).find('.pieceText').text(pieceNameObj[nameArr[0]]);
-                    $(newDiv).find('.afterPieceName').text(nameArr[1]);
-                    $(newDiv).find('.direction').text(dirObj[nameArr[2]]);
-                    $(newDiv).find('.moveQty').text(nameArr[3]);
-                    $('#solutionDiv').append(newDiv);
-                    curObj = srcObj.steps[Object.keys(nextNameObj)[0]];
-                    // let stepObj = srcObj.steps[nowKey].nextSteps[0];
-                    // if (!stepObj) {
-                    //     break;
-                    // }
-                    // let coef = nowKey[0] == 'b' ? 1 : -1;
-                    // let newDiv = $('#moveStepDiv').clone().removeClass('collapse');
-                    // let preName = '';
-                    // if (stepObj.name[1] == 'big') {
-                    //     preName = coef;
-                    // } else if (stepObj.name[1] == 'small') {
-                    //     preName = -coef;
-                    // } else {
-                    //     preName = '';
-                    // }
-                    // switch (preName) {
-                    //     case 1:
-                    //         $(newDiv).find('.prePieceName').text('qian');
-                    //         break;
-                    //     case -1:
-                    //         $(newDiv).find('.prePieceName').text('hou');
-                    //         break;
-                    //     case '':
-                    //         $(newDiv).find('.prePieceName').text('');
-                    //         break;
-                    // }
-                    // $(newDiv).find('.prePieceName').text();
-                    // $(newDiv).find('img').attr('src', getPieceImgStr(nowKey[0] + stepObj.name[0]));
-                    // switch (stepObj.name[2] * coef) {
-                    //     case 0:
-                    //         $(newDiv).find('.direction').text('ping');
-                    //         break;
-                    //     case 1:
-                    //         $(newDiv).find('.direction').text('jin');
-                    //         break;
-                    //     case -1:
-                    //         $(newDiv).find('.direction').text('tui');
-                    //         break;
-                    // }
-                    // $(newDiv).find('.moveQty').text(stepObj.name[3]);
-                    // $('#solutionDiv').append(newDiv);
-                    // // if (stepObj.nextSteps && stepObj.nextSteps[0]) {
-                    // nowKey = stepObj.key
-                    // // } else {
-                    // //     nowKey = '';
-                    // // }
-                }
+                solutionObj = initSolutionDiv(srcObj);
+                // nowKey = null;
+                // let curObj = srcObj.steps[0];
+                // while (curObj.next.length > 0) {
+                //     let length = Object.keys(curObj.next).length;
+                //     let nextNameObj = curObj.next[length - 1];
+                //     let nameArr = nextNameObj[Object.keys(nextNameObj)[0]];
+                //     let newDiv = $('#moveStepDiv').clone().removeClass('collapse');
+                //     const pieceNameObj = {
+                //         c: "车",
+                //         m: "马",
+                //         p: "炮",
+                //         b: "兵",
+                //         s: "士",
+                //         x: "相",
+                //         j: "将",
+                //     }
+                //     const dirObj = {
+                //         fwd: '进',
+                //         bwd: '退',
+                //         hor: '平'
+                //     }
+                //
+                //     $(newDiv).find('.pieceText').text(pieceNameObj[nameArr[0]]);
+                //     $(newDiv).find('.afterPieceName').text(nameArr[1]);
+                //     $(newDiv).find('.direction').text(dirObj[nameArr[2]]);
+                //     $(newDiv).find('.moveQty').text(nameArr[3]);
+                //     $('#solutionDiv').append(newDiv);
+                //     curObj = srcObj.steps[Object.keys(nextNameObj)[0]];
+                //     // let stepObj = srcObj.steps[nowKey].nextSteps[0];
+                //     // if (!stepObj) {
+                //     //     break;
+                //     // }
+                //     // let coef = nowKey[0] == 'b' ? 1 : -1;
+                //     // let newDiv = $('#moveStepDiv').clone().removeClass('collapse');
+                //     // let preName = '';
+                //     // if (stepObj.name[1] == 'big') {
+                //     //     preName = coef;
+                //     // } else if (stepObj.name[1] == 'small') {
+                //     //     preName = -coef;
+                //     // } else {
+                //     //     preName = '';
+                //     // }
+                //     // switch (preName) {
+                //     //     case 1:
+                //     //         $(newDiv).find('.prePieceName').text('qian');
+                //     //         break;
+                //     //     case -1:
+                //     //         $(newDiv).find('.prePieceName').text('hou');
+                //     //         break;
+                //     //     case '':
+                //     //         $(newDiv).find('.prePieceName').text('');
+                //     //         break;
+                //     // }
+                //     // $(newDiv).find('.prePieceName').text();
+                //     // $(newDiv).find('img').attr('src', getPieceImgStr(nowKey[0] + stepObj.name[0]));
+                //     // switch (stepObj.name[2] * coef) {
+                //     //     case 0:
+                //     //         $(newDiv).find('.direction').text('ping');
+                //     //         break;
+                //     //     case 1:
+                //     //         $(newDiv).find('.direction').text('jin');
+                //     //         break;
+                //     //     case -1:
+                //     //         $(newDiv).find('.direction').text('tui');
+                //     //         break;
+                //     // }
+                //     // $(newDiv).find('.moveQty').text(stepObj.name[3]);
+                //     // $('#solutionDiv').append(newDiv);
+                //     // // if (stepObj.nextSteps && stepObj.nextSteps[0]) {
+                //     // nowKey = stepObj.key
+                //     // // } else {
+                //     // //     nowKey = '';
+                //     // // }
+                // }
                 // label.prePieceName
                 // img.smallPieceSize
                 // label.afterPieceName
@@ -512,6 +518,57 @@
                 })
         }
 
+        function animateStep(turnId, isStart = true, callback) {
+            $('[turn=' + solutionObj.curHighlightStep + ']').removeClass('selected');
+            solutionObj.prevHighlightStep = solutionObj.curHighlightStep;
+            solutionObj.curHighlightStep = turnId;
+            $('[turn=' + turnId + ']').addClass('selected');
+            let turnObj = solutionObj.stepArr[turnId];
+            let boardKey = turnObj.board;
+
+            if (isStart) {
+                return drawBoardKey(boardKey, () => {
+                    let moveObj = turnObj.nextArr[turnObj.nextChoice];
+
+                    animatePieceMove(moveObj[Object.keys(moveObj)[0]], callback);
+                });
+            } else {
+                let moveObj = turnObj.nextArr[turnObj.nextChoice];
+                animatePieceMove(moveObj[Object.keys(moveObj)[0]], callback);
+            }
+        }
+
+        $('#infoDiv').on('click', '.stepText', function (evt) {
+            const turnId = $(this).attr('turn');
+            animateStep(turnId);
+        })
+        $('#infoDiv').on('click', '.playFuncRow', function (evt) {
+            console.log('func', this, evt);
+            const id = $(evt.target).attr('id');
+            let isPause = false;
+            switch (id) {
+                // case 'animatePreStep':
+                //     animateStep(solutionObj.curHighlightStep)
+                //     break;
+                case 'animatePlayStep':
+                    let turn = 0;
+                    animateStep(0, true);
+                    let ani = function () {
+                        setTimeout(() => {
+                            if (!isPause && solutionObj.stepArr[turn].nextArr.length > 0) {
+                                animateStep(turn++, false, ani());
+                            }
+                        }, 1000);
+                    }
+                    ani();
+                    break;
+                case 'animatePauseStep':
+                    isPause = !isPause;
+                    break;
+                // case 'animateNextStep':
+                //     break;
+            }
+        })
         function initSolutionDiv(srcObj) {
             let $div = $('#solutionDiv');
             let solutionObj = {
@@ -532,21 +589,26 @@
             for (let i = 0; i < srcObj.maxSolLength / 2; i++) {
                 let newTr = $('<tr>');
                 newTr.append('<td>' + (i + 1) + '</td>');
-                newTr.append($('<td>', {
-                    class: 'step rStep'
-                }).attr('turn', parseInt(i * 2)));
-                newTr.append($('<td>', {
-                    class: 'step bStep'
-                }).attr('turn', parseInt(i * 2 + 1)));
+                newTr.append($('<td>')
+                    .html($('<a>', {
+                            class: 'stepText rStep'
+                        }).attr('turn', parseInt(i * 2))
+                    )
+                );
+                newTr.append($('<td>')
+                    .html($('<a>', {
+                            class: 'stepText bStep'
+                        }).attr('turn', parseInt(i * 2 + 1))
+                    )
+                );
+                // newTr.append($('<td>', {
+                //     class: 'step bStep'
+                // }).attr('turn', parseInt(i * 2 + 1)));
 
                 $stepTable.append(newTr);
             }
             $stepTable.append($stepTable);
-            $div.on('click', '.playFuncRow img', function () {
-                console.log('play btn click', this);
-            }).on('click', '.stepText', function () {
-                console.log('step click', this);
-            })
+
             drawFromSolStep(solutionObj, 0);
             return solutionObj;
         }
@@ -577,7 +639,7 @@
                 return;
             }
             let curObj = solObj.stepArr[step];
-            drawBoardKey(curObj.board);
+            // drawBoardKey(curObj.board);
             if (!curObj.nextArr) {
                 return
             }
@@ -597,8 +659,39 @@
 
         }
 
-        function drawBoardKey(boardKey) {
+        function drawBoardKey(boardKey, callback) {
+            $('#chessboarddiv .pieceSize').attr('src', null);
+            const pieceStr = boardKey.slice(1);
+            'ccmmppbbbbbssxxj'.split('').forEach((k, idx) => {
+                [0, 32].forEach(offset => {
+                    let pos = pieceStr.slice(idx * 2 + offset, idx * 2 + 2 + offset);
+                    if (pos != '00') {
+                        let key = offset == 0 ? ('r' + k) : ('b' + k);
+                        $('.boardPos' + pos).find('img').attr('src', getPieceImgStr(key));
+                    }
+                })
 
+            })
+            return callback && callback();
+        }
+
+        function animatePieceMove(dataObj, callback) {
+            let $img = $('.boardPos' + dataObj.pos1);
+            let $to = $('.boardPos' + dataObj.pos2);
+            let oriTop = $img.css('top');
+            let oriLeft = $img.css('left');
+
+            $img.animate({
+                top: $to.css('top'),
+                left: $to.css('left'),
+                'z-index': 1000
+            }, 200, function () {
+                // Animation complete.
+                $to.find('img').attr('src', $img.find('img').attr('src'));
+                $img.css('top', oriTop).css('left', oriLeft);
+                $img.find('img').attr('src', null).css('z-index', 1);
+                callback && callback();
+            });
         }
 
         return {
@@ -628,15 +721,17 @@
                             initSetupBoard();
                             break;
                         case 'btnResetBoard':
-                            resetBoard();
+                            resetSetupBoard();
                             break;
                         case 'btnSubmitBoard':
                             submitBoard();
                             break;
                         case 'getTemp':
+
+                            //let resData = JSON.parse('{"startKey":"r3161440036560000000000000000005998007377410048570000005160527050","solList":[["r3161440036560000000000000000005998007377410048570000005160527050","b3061440036560000000000000000005998007377410048570000005160527050","r3061440036560000000000000000005998007377400048570000005160527050","b4061440036560000000000000000005998007377000048570000005160527050","r0061440036560000000000000000005998007377000048570000005160527040","b0060440036560000000000000000005998007377000048570000005100527040","r0000440036560000000000000000005998007377000048570000006000527040","b0000440046560000000000000000005998007377000048570000006000527040"],["r3161440036560000000000000000005998007377410048570000005160527050","b3061440036560000000000000000005998007377410048570000005160527050","r3061440036560000000000000000005998007377400048570000005160527050","b4061440036560000000000000000005998007377000048570000005160527050","r0061440036560000000000000000005998007377000048570000005160527040","b0060440036560000000000000000005998007377000048570000005100527040","r0060440036560000000000000000005998007377000048570000005100527041","b0060440046560000000000000000005998007377000048570000005100527041","r0060440046560000000000000000005998007377000048570000004200527041","b0060250046560000000000000000005998007377000048570000004200527041","r0060250046560000000000000000005998007377000048570000005100527041","b0060330046560000000000000000005998007377000048570000005100527041","r0060330046560000000000000000005998007377000048570000005100527042","b0060450046560000000000000000005998007377000048570000005100527042"]],"steps":{"0":{"curBoard":"r3161440036560000000000000000005998007377410048570000005160527050","next":[{"1":{"pieceName":"c","oriPos":7,"direction":"fwd","newPos":1,"pos1":"31","pos2":"30"}}]},"1":{"curBoard":"b3061440036560000000000000000005998007377410048570000005160527050","next":[{"2":{"pieceName":"p","oriPos":"4","direction":"bwd","newPos":1,"pos1":"41","pos2":"40"}}]},"2":{"curBoard":"r3061440036560000000000000000005998007377400048570000005160527050","next":[{"3":{"pieceName":"c","oriPos":7,"direction":"hor","newPos":6,"pos1":"30","pos2":"40"}}]},"3":{"curBoard":"b4061440036560000000000000000005998007377000048570000005160527050","next":[{"4":{"pieceName":"j","oriPos":"5","direction":"hor","newPos":"4","pos1":"50","pos2":"40"}}]},"4":{"curBoard":"r0061440036560000000000000000005998007377000048570000005160527040","next":[{"5":{"pieceName":"c","oriPos":4,"direction":"fwd","newPos":1,"pos1":"61","pos2":"60"}}]},"5":{"curBoard":"b0060440036560000000000000000005998007377000048570000005100527040","next":[{"6":{"pieceName":"s","oriPos":"5","direction":"bwd","newPos":"6","pos1":"51","pos2":"60"}},{"9":{"pieceName":"j","oriPos":"4","direction":"fwd","newPos":1,"pos1":"40","pos2":"41"}}]},"6":{"curBoard":"r0000440036560000000000000000005998007377000048570000006000527040","next":[{"7":{"pieceName":"p","oriPos":7,"direction":"hor","newPos":6,"pos1":"36","pos2":"46"}}]},"7":{"curBoard":"b0000440046560000000000000000005998007377000048570000006000527040","next":[]},"8":{"curBoard":"r3161440036560000000000000000005998007377410048570000005160527050","next":[{"1":{"pieceName":"c","oriPos":7,"direction":"fwd","newPos":1,"pos1":"31","pos2":"30"}}]},"9":{"curBoard":"r0060440036560000000000000000005998007377000048570000005100527041","next":[{"10":{"pieceName":"p","oriPos":7,"direction":"hor","newPos":6,"pos1":"36","pos2":"46"}}]},"10":{"curBoard":"b0060440046560000000000000000005998007377000048570000005100527041","next":[{"11":{"pieceName":"s","oriPos":"5","direction":"fwd","newPos":"4","pos1":"51","pos2":"42"}}]},"11":{"curBoard":"r0060440046560000000000000000005998007377000048570000004200527041","next":[{"12":{"pieceName":"m","oriPos":6,"direction":"bwd","newPos":8,"pos1":"44","pos2":"25"}}]},"12":{"curBoard":"b0060250046560000000000000000005998007377000048570000004200527041","next":[{"13":{"pieceName":"s","oriPos":"4","direction":"bwd","newPos":"5","pos1":"42","pos2":"51"}}]},"13":{"curBoard":"r0060250046560000000000000000005998007377000048570000005100527041","next":[{"14":{"pieceName":"m","oriPos":8,"direction":"fwd","newPos":7,"pos1":"25","pos2":"33"}}]},"14":{"curBoard":"b0060330046560000000000000000005998007377000048570000005100527041","next":[{"15":{"pieceName":"j","oriPos":"4","direction":"fwd","newPos":1,"pos1":"41","pos2":"42"}}]},"15":{"curBoard":"r0060330046560000000000000000005998007377000048570000005100527042","next":[{"16":{"pieceName":"m","oriPos":7,"direction":"bwd","newPos":6,"pos1":"33","pos2":"45"}}]},"16":{"curBoard":"b0060450046560000000000000000005998007377000048570000005100527042","next":[]}},"maxSolLength":14}');
                             let resData = JSON.parse('{"startKey":"r2355000000004400000000000000005968807700000000000000005162000041","solList":[["r2355000000004400000000000000005968807700000000000000005162000041","b4355000000004400000000000000005968807700000000000000005162000041","r4355000000004400000000000000005968807700000000000000004262000041","b4255000000004400000000000000005968807700000000000000000062000041","r0055000000004400000000000000005968807700000000000000000062000042","b0055000000004300000000000000005968807700000000000000000062000042","r0055000000004300000000000000005968807700000000000000000062000041","b0055000000004200000000000000005968807700000000000000000062000041","r0055000000000000000000000000005968807700000000000000000062000042","b0045000000000000000000000000005968807700000000000000000062000042"],["r2355000000004400000000000000005968807700000000000000005162000041","b4355000000004400000000000000005968807700000000000000005162000041","r4355000000004400000000000000005968807700000000000000004262000041","b4255000000004400000000000000005968807700000000000000000062000041","r0055000000004400000000000000005968807700000000000000000062000042","b0055000000004300000000000000005968807700000000000000000062000042","r0055000000004300000000000000005968807700000000000000000062000041","b0055000000004200000000000000005968807700000000000000000062000041","r0055000000004200000000000000005968807700000000000000000062000040","b0055000000004100000000000000005968807700000000000000000062000040","r0055000000000000000000000000005968807700000000000000000062000041","b0045000000000000000000000000005968807700000000000000000062000041"]],"steps":{"0":{"curBoard":"r2355000000004400000000000000005968807700000000000000005162000041","next":[{"1":{"pieceName":"c","oriPos":8,"direction":"hor","newPos":6,"pos1":"23","pos2":"43"}}]},"1":{"curBoard":"b4355000000004400000000000000005968807700000000000000005162000041","next":[{"2":{"pieceName":"s","oriPos":"5","direction":"fwd","newPos":"4","pos1":"51","pos2":"42"}}]},"2":{"curBoard":"r4355000000004400000000000000005968807700000000000000004262000041","next":[{"3":{"pieceName":"c","oriPos":6,"direction":"fwd","newPos":1,"pos1":"43","pos2":"42"}}]},"3":{"curBoard":"b4255000000004400000000000000005968807700000000000000000062000041","next":[{"4":{"pieceName":"j","oriPos":"4","direction":"fwd","newPos":1,"pos1":"41","pos2":"42"}}]},"4":{"curBoard":"r0055000000004400000000000000005968807700000000000000000062000042","next":[{"5":{"pieceName":"b","direction":"fwd","newPos":1,"pos1":"44","pos2":"43"}}]},"5":{"curBoard":"b0055000000004300000000000000005968807700000000000000000062000042","next":[{"6":{"pieceName":"j","oriPos":"4","direction":"bwd","newPos":1,"pos1":"42","pos2":"41"}}]},"6":{"curBoard":"r0055000000004300000000000000005968807700000000000000000062000041","next":[{"7":{"pieceName":"b","direction":"fwd","newPos":1,"pos1":"43","pos2":"42"}}]},"7":{"curBoard":"b0055000000004200000000000000005968807700000000000000000062000041","next":[{"8":{"pieceName":"j","oriPos":"4","direction":"fwd","newPos":1,"pos1":"41","pos2":"42"}},{"11":{"pieceName":"j","oriPos":"4","direction":"bwd","newPos":1,"pos1":"41","pos2":"40"}}]},"8":{"curBoard":"r0055000000000000000000000000005968807700000000000000000062000042","next":[{"9":{"pieceName":"c","oriPos":5,"direction":"hor","newPos":6,"pos1":"55","pos2":"45"}}]},"9":{"curBoard":"b0045000000000000000000000000005968807700000000000000000062000042","next":[]},"10":{"curBoard":"r2355000000004400000000000000005968807700000000000000005162000041","next":[{"1":{"pieceName":"c","oriPos":8,"direction":"hor","newPos":6,"pos1":"23","pos2":"43"}}]},"11":{"curBoard":"r0055000000004200000000000000005968807700000000000000000062000040","next":[{"12":{"pieceName":"b","direction":"fwd","newPos":1,"pos1":"42","pos2":"41"}}]},"12":{"curBoard":"b0055000000004100000000000000005968807700000000000000000062000040","next":[{"13":{"pieceName":"j","oriPos":"4","direction":"fwd","newPos":1,"pos1":"40","pos2":"41"}}]},"13":{"curBoard":"r0055000000000000000000000000005968807700000000000000000062000041","next":[{"14":{"pieceName":"c","oriPos":5,"direction":"hor","newPos":6,"pos1":"55","pos2":"45"}}]},"14":{"curBoard":"b0045000000000000000000000000005968807700000000000000000062000041","next":[]}},"maxSolLength":12}');
                             // displayInfo('solution', resData);
-                            initSolutionDiv(resData);
+                            solutionObj = initSolutionDiv(resData);
                             break;
 
                     }
