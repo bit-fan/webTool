@@ -627,52 +627,7 @@ var self = module.exports = {
             }
 
         }
-        // if ('cpj'.indexOf[pieceName] != -1) {
-        //     pos1 = diffKey1.slice(0, 2) == diffKey2.slice(0, 2) ? diffKey1.slice(2) : diffKey1.slice(0, 2);
-        //     pos2 = diffKey1.slice(2) == diffKey2.slice(2) ? diffKey2.slice(0, 2) : diffKey2.slice(2);
-        //     if (diffKey1[0] != diffKey1[2]) {//not in one col
-        //         oriPos = pos1[0];
-        //     } else {//in one col
-        //         if (2 * parseInt(pos1[1]) > parseInt(diffKey1[0]) + parseInt(diffKey1[2])) {
-        //             oriPos = "big"
-        //         } else {
-        //             oriPos = 'small';
-        //         }
-        //     }
-        //     if (pos1[0] == pos2[0]) {//move vertical
-        //         direction = pos2[1] > pos1[1] ? 1 : -1;
-        //         newPos = parseInt(pos2[1]) - parseInt(pos1[1]);
-        //     } else {//move hori
-        //         direction = 0;
-        //         newPos = pos2[0];
-        //     }
-        //
-        // } else if ('msx'.indexOf[pieceName] != -1) {
-        //
-        // } else if (pieceName == 'b') {
-        //
-        //     // } else if (pieceName == 'j') {
-        //
-        // }
 
-        // let diffPos = [];
-        // for (let i = 1; i < key1.length; i = i + 2) {
-        //     let str1 = key1[i] + key1[i + 1];
-        //     let str2 = key2[i] + key2[i + 1];
-        //     if (str1 == '00' || str2 == '00') {
-        //         continue;
-        //     }
-        //
-        //     if (str1 != str2) {
-        //         diffPos.push((i - 1) / 2);
-        //         diffPos.push(str1);
-        //         diffPos.push(str2);
-        //     }
-        // }
-        // console.log(key1, '&', key2, '&', diffPos);
-        // let pieceName = (diffPos[0] > 15 ? 'b' : 'r') + piecePosName[diffPos[0]];
-        // console.log(pieceName, diffPos)
-        // console.log(pos1, pos2, pieceName, oriPos, direction, newPos);
         return {pieceName, oriPos, direction, newPos, pos1, pos2};
     }
 }

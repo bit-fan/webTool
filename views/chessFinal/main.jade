@@ -26,6 +26,8 @@ link(rel='stylesheet', href='/css/chess.css')
             li
                 button#btnResetBoard 重置
             li
+                button#btnBoardLib 残局库
+            li
                 button#getTemp getTemp
         div
             label top
@@ -48,11 +50,16 @@ link(rel='stylesheet', href='/css/chess.css')
                 #chessboarddiv
 
     .col-md-5#infoDiv
-        #piecesListWrapper
-            .inlineBlk-group
-                div
-                    | Please setup piece
-                #piecesList
+
+        #piecesListWrapper.collapse
+            div
+                .inlineBlk-group
+                    div
+                        | Please setup piece
+                    #piecesList
+            #boardLibDiv
+
+
         #validCheckResult.infoType.collapse
             p
                 h3 棋局&nbsp;&nbsp;&nbsp;
@@ -69,7 +76,7 @@ link(rel='stylesheet', href='/css/chess.css')
             p
                 | 错误数量&nbsp;&nbsp;&nbsp;
                 span#boardPieceQtyValidText
-        #solutionDiv
+        #solutionDiv.collapse
             .row.playFuncRow
                 .col-md-12
                     //a
@@ -86,12 +93,7 @@ link(rel='stylesheet', href='/css/chess.css')
                 .col-md-5#stepArrContainer.collapse
                     div 另解:
                     #stepArrDiv
-
-
-
-
-
-#pieceCandicateDiv
+#pieceCandicateDiv.collapse
     img.pieceSize.pickPiece
     span
 #moveStepDiv.collapse
@@ -101,7 +103,7 @@ link(rel='stylesheet', href='/css/chess.css')
     label.afterPieceName
     label.direction
     label.moveQty
-#sampleStepDiv.collpase
+#sampleStepDiv.collapse
     span.orderId
     span.stepText.rStep.alignTop
     span.stepText.bStep.alignBottom
