@@ -320,7 +320,7 @@
         }
 
         function drawBoard() {
-            let width = $('#piecesListWrapper').width();
+            let width = $('#chessContainer').width();
             $('#chessboarddiv').css('background-image', 'url(' + baseData.board.img + ')');
             $('#chessboarddiv').height(width * baseData.board.height / baseData.board.width);
             initBoardPiecePos();
@@ -538,56 +538,6 @@
             }
         }
 
-        $('#infoDiv').on('click', '.stepArrTxt', function (evt) {
-            // const turnId = $(this).attr('turn');
-            // let turnObj = solutionObj.stepArr[turnId];
-            // if (turnObj.nextArr.length > 1) {
-            //     showOtherStepOption(turnId, turnObj.nextArr);
-            // }
-            let $target = $(evt.target);
-            let turn = parseInt($target.attr('forTurn'));
-            let choice = $target.attr('choice');
-            console.log(solutionObj, solutionObj.stepArr[turn]);
-            solutionObj.stepArr[turn].nextChoice = choice;
-            drawFromSolStep(solutionObj, turn);
-            // animateStep(turnId);
-        })
-        $('#infoDiv').on('click', '.stepText', function (evt) {
-            const turnId = $(this).attr('turn');
-            let turnObj = solutionObj.stepArr[turnId];
-            // if (turnObj.nextArr.length > 1) {
-            showOtherStepOption(turnId, turnObj.nextArr);
-            // }
-            console.log('turnObj', turnObj);
-            animateStep(turnId);
-        })
-        $('#infoDiv').on('click', '.playFuncRow', function (evt) {
-            console.log('func', this, evt);
-            const id = $(evt.target).attr('id');
-            switch (id) {
-                // case 'animatePreStep':
-                //     animateStep(solutionObj.curHighlightStep)
-                //     break;
-                case 'animatePlayStep':
-                    let turn = solutionObj.curHighlightStep;
-                    pauseAnimation = false;
-                    animateStep(turn, true);
-                    let ani = function () {
-                        setTimeout(() => {
-                            if (!pauseAnimation && solutionObj.stepArr[turn].nextArr && solutionObj.stepArr[turn].nextArr.length > 0) {
-                                animateStep(++turn, false, ani());
-                            }
-                        }, 1000);
-                    }
-                    ani();
-                    break;
-                case 'animatePauseStep':
-                    pauseAnimation = true;
-                    break;
-                // case 'animateNextStep':
-                //     break;
-            }
-        })
         function initSolutionDiv(srcObj) {
             let $div = $('#solutionDiv');
             let solutionObj = {
@@ -747,6 +697,56 @@
 
             init: function (skt) {
                 mySkt = skt;
+                $('#infoDiv').on('click', '.stepArrTxt', function (evt) {
+                    // const turnId = $(this).attr('turn');
+                    // let turnObj = solutionObj.stepArr[turnId];
+                    // if (turnObj.nextArr.length > 1) {
+                    //     showOtherStepOption(turnId, turnObj.nextArr);
+                    // }
+                    let $target = $(evt.target);
+                    let turn = parseInt($target.attr('forTurn'));
+                    let choice = $target.attr('choice');
+                    console.log(solutionObj, solutionObj.stepArr[turn]);
+                    solutionObj.stepArr[turn].nextChoice = choice;
+                    drawFromSolStep(solutionObj, turn);
+                    // animateStep(turnId);
+                })
+                $('#infoDiv').on('click', '.stepText', function (evt) {
+                    const turnId = $(this).attr('turn');
+                    let turnObj = solutionObj.stepArr[turnId];
+                    // if (turnObj.nextArr.length > 1) {
+                    showOtherStepOption(turnId, turnObj.nextArr);
+                    // }
+                    console.log('turnObj', turnObj);
+                    animateStep(turnId);
+                })
+                $('#infoDiv').on('click', '.playFuncRow', function (evt) {
+                    console.log('func', this, evt);
+                    const id = $(evt.target).attr('id');
+                    switch (id) {
+                        // case 'animatePreStep':
+                        //     animateStep(solutionObj.curHighlightStep)
+                        //     break;
+                        case 'animatePlayStep':
+                            let turn = solutionObj.curHighlightStep;
+                            pauseAnimation = false;
+                            animateStep(turn, true);
+                            let ani = function () {
+                                setTimeout(() => {
+                                    if (!pauseAnimation && solutionObj.stepArr[turn].nextArr && solutionObj.stepArr[turn].nextArr.length > 0) {
+                                        animateStep(++turn, false, ani());
+                                    }
+                                }, 1000);
+                            }
+                            ani();
+                            break;
+                        case 'animatePauseStep':
+                            pauseAnimation = true;
+                            break;
+                        // case 'animateNextStep':
+                        //     break;
+                    }
+                })
                 $('select#boardType').on('change', target => {
                     console.log('board change');
                     curBoardTag = $('select#boardType').val();

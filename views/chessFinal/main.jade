@@ -43,16 +43,16 @@ link(rel='stylesheet', href='/css/chess.css')
             button#confirm confirm
     .col-md-5#boardDiv
         .row
-            .col-12#piecesListWrapper
-                .inlineBlk-group
-                    div
-                        | Please setup piece
-                    #piecesList
             img#hideboarddiv
             .col-12#chessContainer
                 #chessboarddiv
 
     .col-md-5#infoDiv
+        #piecesListWrapper
+            .inlineBlk-group
+                div
+                    | Please setup piece
+                #piecesList
         #validCheckResult.infoType.collapse
             p
                 h3 棋局&nbsp;&nbsp;&nbsp;

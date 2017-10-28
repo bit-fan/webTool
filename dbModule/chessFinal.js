@@ -229,6 +229,7 @@ var socket = {
     chessValidateBoard: function (req) {
         return Chess.isBoardObjValid(req);
     },
+    //chess key
     chessStartBoard: function (reqKey) {
         let solObj = {
             startKey: reqKey,
