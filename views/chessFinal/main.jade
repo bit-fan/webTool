@@ -4,8 +4,8 @@ link(rel='stylesheet', href='/css/chess.css')
         div
             label 棋盘
             select#boardType.form-control
-                option(value='board0', selected) 类型1
-                option(value='board1') 类型2
+                //option(value='board0') 类型1
+                option(value='board1', selected) 类型2
         div
             label 棋子
             select#pieceType.form-control
@@ -71,19 +71,22 @@ link(rel='stylesheet', href='/css/chess.css')
                 span#boardPieceQtyValidText
         #solutionDiv
             .row.playFuncRow
-                .col-12
-                    a
+                .col-md-12
+                    //a
                         img#animatePreStep(width=30 height=30 src='../../src/img/chess/func/previous-track.svg')
-                    a
+                    button
                         img#animatePlayStep(width=30 height=30 src='../../src/img/chess/func/play-button.svg')
-                    a
+                    button
                         img#animatePauseStep(width=30 height=30 src='../../src/img/chess/func/pause-button.svg')
-                    a
+                    //a
                         img#animateNextStep(width=30 height=30 src='../../src/img/chess/func/next-track-button.svg')
             .row
-                .col-7
-                    table#stepTable
-                .col-5
+                .col-md-7.padding5
+                    table#stepTable.borderDouble
+                .col-md-5#stepArrContainer.collapse
+                    div 另解:
+                    #stepArrDiv
+
 
 
 

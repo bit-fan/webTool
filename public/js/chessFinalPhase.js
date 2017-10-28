@@ -3,7 +3,7 @@
         const imgBaseDir = '../src/img/chess/';
         var mySkt;
         var curBoardTag, curPieceFolder, curPieceExt, baseData = {}, finalBoard = {},
-            mouseDownFlag = false, finalBoardKey = '';
+            mouseDownFlag = false, finalBoardKey = '', pauseAnimation = false;
         var MoveStepSpeed = 100, solutionObj = {}, dragEvtObj = {};
 
         const boardObj = {
@@ -532,38 +532,57 @@
 
                     animatePieceMove(moveObj[Object.keys(moveObj)[0]], callback);
                 });
-            } else {
+            } else if (turnObj && turnObj.nextArr) {
                 let moveObj = turnObj.nextArr[turnObj.nextChoice];
                 animatePieceMove(moveObj[Object.keys(moveObj)[0]], callback);
             }
         }
 
+        $('#infoDiv').on('click', '.stepArrTxt', function (evt) {
+            // const turnId = $(this).attr('turn');
+            // let turnObj = solutionObj.stepArr[turnId];
+            // if (turnObj.nextArr.length > 1) {
+            //     showOtherStepOption(turnId, turnObj.nextArr);
+            // }
+            let $target = $(evt.target);
+            let turn = parseInt($target.attr('forTurn'));
+            let choice = $target.attr('choice');
+            console.log(solutionObj, solutionObj.stepArr[turn]);
+            solutionObj.stepArr[turn].nextChoice = choice;
+            drawFromSolStep(solutionObj, turn);
+            // animateStep(turnId);
+        })
         $('#infoDiv').on('click', '.stepText', function (evt) {
             const turnId = $(this).attr('turn');
+            let turnObj = solutionObj.stepArr[turnId];
+            // if (turnObj.nextArr.length > 1) {
+            showOtherStepOption(turnId, turnObj.nextArr);
+            // }
+            console.log('turnObj', turnObj);
             animateStep(turnId);
         })
         $('#infoDiv').on('click', '.playFuncRow', function (evt) {
             console.log('func', this, evt);
             const id = $(evt.target).attr('id');
-            let isPause = false;
             switch (id) {
                 // case 'animatePreStep':
                 //     animateStep(solutionObj.curHighlightStep)
                 //     break;
                 case 'animatePlayStep':
-                    let turn = 0;
-                    animateStep(0, true);
+                    let turn = solutionObj.curHighlightStep;
+                    pauseAnimation = false;
+                    animateStep(turn, true);
                     let ani = function () {
                         setTimeout(() => {
-                            if (!isPause && solutionObj.stepArr[turn].nextArr.length > 0) {
-                                animateStep(turn++, false, ani());
+                            if (!pauseAnimation && solutionObj.stepArr[turn].nextArr && solutionObj.stepArr[turn].nextArr.length > 0) {
+                                animateStep(++turn, false, ani());
                             }
                         }, 1000);
                     }
                     ani();
                     break;
                 case 'animatePauseStep':
-                    isPause = !isPause;
+                    pauseAnimation = true;
                     break;
                 // case 'animateNextStep':
                 //     break;
@@ -580,7 +599,7 @@
                     nextChoice: 0
                 }],
                 stepObj: srcObj.steps,
-                maxStep: 10
+                maxStep: srcObj.maxSolLength
             }
             let $stepTable = $div.find('#stepTable');
             $stepTable.html('');
@@ -613,7 +632,7 @@
             return solutionObj;
         }
 
-        const pieceNameObj = {
+        const pieceNameObjToTxt = {
             c: "车",
             m: "马",
             p: "炮",
@@ -622,15 +641,15 @@
             x: "相",
             j: "将",
         }
-        const directionObj = {
+        const directionObjToTxt = {
             fwd: '进',
             bwd: '退',
             hor: '平'
         }
 
         function generateMoveName(moveObj) {
-            let pieceName = pieceNameObj[moveObj.pieceName];
-            let dire = directionObj[moveObj.direction];
+            let pieceName = pieceNameObjToTxt[moveObj.pieceName];
+            let dire = directionObjToTxt[moveObj.direction];
             return pieceName + moveObj.oriPos + dire + moveObj.newPos;
         }
 
@@ -644,18 +663,26 @@
                 return
             }
             let nextStep = curObj.nextArr[curObj.nextChoice];
-            let nextStepId = Object.keys(nextStep)[0];
-            let moveObj = nextStep[nextStepId];
-            let moveName = generateMoveName(moveObj) + (curObj.nextArr.length > 1 ? '*' : '');
-            $('table#stepTable').find('[turn=' + step + ']').text(moveName);
-            solObj.stepArr[step + 1] = {
-                board: solObj.stepObj[nextStepId].curBoard,
-                nextArr: solObj.stepObj[nextStepId].next,
-                nextChoice: 0
+            if (nextStep) {
+                let nextStepId = Object.keys(nextStep)[0];
+                let moveObj = nextStep[nextStepId];
+                let moveName = generateMoveName(moveObj) + (curObj.nextArr.length > 1 ? '*' : '');
+                $('table#stepTable').find('[turn=' + step + ']').text(moveName);
+                solObj.stepArr[step + 1] = {
+                    board: solObj.stepObj[nextStepId].curBoard,
+                    nextArr: solObj.stepObj[nextStepId].next,
+                    nextChoice: 0
+                }
+                return setTimeout(function () {
+                    return drawFromSolStep(solObj, step + 1);
+                }, MoveStepSpeed)
+            } else {
+                for (let nowStep = step; nowStep < solObj.maxStep; nowStep++) {
+                    $('table#stepTable').find('[turn=' + nowStep + ']').text('');
+                    solObj.stepArr[nowStep] = {};
+                }
             }
-            return setTimeout(function () {
-                drawFromSolStep(solObj, step + 1)
-            }, MoveStepSpeed)
+
 
         }
 
@@ -692,6 +719,28 @@
                 $img.find('img').attr('src', null).css('z-index', 1);
                 callback && callback();
             });
+        }
+
+        function showOtherStepOption(turnId, stepArr) {
+            let $div = $('#stepArrDiv');
+            $div.html('');
+            if (stepArr && stepArr.length > 1) {
+                $('#stepArrContainer').removeClass('collapse');
+                stepArr.forEach((nextStep, idx) => {
+                    let nextStepId = Object.keys(nextStep)[0];
+                    let moveObj = nextStep[nextStepId];
+                    let moveName = generateMoveName(moveObj);
+                    let $step = $('<div>', {
+                        class: 'stepArrTxt'
+                    })
+                        .attr('forTurn', turnId)
+                        .attr('choice', idx)
+                        .text(moveName);
+                    $div.append($step);
+                });
+            } else {
+                $('#stepArrContainer').addClass('collapse');
+            }
         }
 
         return {
