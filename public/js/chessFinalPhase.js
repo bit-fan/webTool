@@ -347,6 +347,9 @@
                 console.log(failData);
                 // setLoading(true, failData.code || 'Error');
             })
+            mySkt.on('_chessBoardStatus', resData=>{
+                console.log('res', resData);
+            });
         }
 
         function displayInfo(type, srcObj) {

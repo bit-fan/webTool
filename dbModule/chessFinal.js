@@ -6,13 +6,18 @@ const path = require('path');
 const filePath = path.join(__dirname, '..', 'dataFile', 'chess', 'chessBoardList.txt');
 
 var local = {
-    getSolution(solObj, step, checkKey){
+    getSolution(skt, solObj, step, checkKey){
+        skt.emit('_chessBoardStatus', {
+            status: 200,
+            data: 'checking turn ' + step + ' ' + checkKey.length
+        });
         console.log('total keys', Object.keys(solObj.boardList).length, checkKey.length, solObj.winList.length);
         if (checkKey.length == 0) {
             return solObj;
         }
         let checkNowKey = [], nextCheckKey = [];
         while (checkKey.length > 0) {
+            // console.log('checkKey', checkKey);
 
             let startObj = solObj.boardList[solObj.startKey];
             if (startObj.status) {
@@ -22,7 +27,7 @@ var local = {
             let thisBoardKey = checkKey[0], curRound = thisBoardKey[0];
             let thisBoardObj = solObj.boardList[thisBoardKey];
             // if (thisBoardObj.nextListed && thisBoardObj.from.length == 0) {
-            //     checkKey.splice(0, 1);
+            //     checkKey.shift();
             //     continue;
             // }
             let nextboardArr = [];
@@ -68,6 +73,7 @@ var local = {
 
             //check whether have immediate checkings, checknowKey is the arr of keys where  the next step is an end
             while (checkNowKey.length > 0) {
+                // console.log('checkNowKey', checkNowKey);
                 let startObj = solObj.boardList[solObj.startKey];
                 if (startObj.status) {
                     break;
@@ -75,13 +81,15 @@ var local = {
 
                 let thisKeyObj = solObj.boardList[checkNowKey[0]];
 
-                // if (thisKeyObj.from.length == 0) {
+                // if (thisKeyObj.nextListed && thisKeyObj.from.length == 0) {
                 //     thisKeyObj.nextAllKey.forEach(newKeyRemovethisfrom => {
                 //         let checkingObj = solObj.boardList[newKeyRemovethisfrom];
                 //         let idx = checkingObj.from.indexOf(checkNowKey[0]);
-                //         checkingObj.from.splice(idx, 1);
-                //         if (checkingObj.from.length == 0) {
-                //             checkNowKey = checkNowKey.concat(solObj.boardList[key].nextAllKey);
+                //         if (idx != -1) {
+                //             checkingObj.from.splice(idx, 1);
+                //             if (checkingObj.from.length == 0) {
+                //                 checkNowKey = checkNowKey.concat(checkingObj.nextAllKey);
+                //             }
                 //         }
                 //     });
                 //     checkNowKey.shift();
@@ -125,16 +133,18 @@ var local = {
                 // }
                 if (thisKeyObj.nextAllKey.length == 0 && thisKeyObj.nextWinKey.length == 0) {
 
-                    thisKeyObj.maxLose = thisKeyObj.nextLoseKey.map(key => {
-                        let arr = key.split('#');
-                        return parseInt(arr[1]);
-                    }).reduce((prev, cur) => {
-                        return prev > cur ? prev : cur;
-                    })
-                    if (!thisKeyObj.status) {
-                        hasChange = true;
+                    if (thisKeyObj.nextLoseKey.length > 0) {
+                        thisKeyObj.maxLose = thisKeyObj.nextLoseKey.map(key => {
+                            let arr = key.split('#');
+                            return parseInt(arr[1]);
+                        }).reduce((prev, cur) => {
+                            return prev > cur ? prev : cur;
+                        })
+                        if (!thisKeyObj.status) {
+                            hasChange = true;
+                        }
+                        thisKeyObj.status = oppoRound + 'Win';
                     }
-                    thisKeyObj.status = oppoRound + 'Win';
                 }
                 if (thisKeyObj.nextWinKey.length > 0) {
                     thisKeyObj.minWin = thisKeyObj.nextWinKey.reduce((prev, key) => {
@@ -150,11 +160,13 @@ var local = {
                     //remove from
                     thisKeyObj.nextAllKey.forEach(key => {
                         let fromKeyArr = solObj.boardList[key].from;
-                        let removeIdx = fromKeyArr.indexOf(key);
-                        fromKeyArr.splice(removeIdx, 1);
-                        // if (fromKeyArr.length == 0) {
-                        //     checkNowKey = checkNowKey.concat(solObj.boardList[key].nextAllKey);
-                        // }
+                        let removeIdx = fromKeyArr.indexOf(checkNowKey[0]);
+                        if (removeIdx != -1) {
+                            fromKeyArr.splice(removeIdx, 1);
+                            // if (fromKeyArr.length == 0) {
+                            //     checkNowKey = checkNowKey.concat(key);
+                            // }
+                        }
                     })
                 }
                 if (hasChange) {
@@ -164,7 +176,7 @@ var local = {
                 checkNowKey.shift();
             }
         }
-        return local.getSolution(solObj, step + 1, nextCheckKey);
+        return local.getSolution(skt, solObj, step + 1, nextCheckKey);
     },
     generateSolutionList(solObj, solList){
         let appendArr = [];
@@ -279,7 +291,7 @@ var socket = {
 
         }
     },
-    chessStartBoard: function (reqKey) {
+    chessStartBoard: function (reqKey, socket) {
         let solObj = {
             startKey: reqKey,
             boardList: {},
@@ -296,8 +308,8 @@ var socket = {
             nextLoseKey: []
         }
 
-        solObj = local.getSolution(solObj, 0, [reqKey]);
-        console.log('solObj', JSON.stringify(solObj));
+        solObj = local.getSolution(socket, solObj, 0, [reqKey]);
+        // console.log('solObj', JSON.stringify(solObj));
         let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
 
         let maxSolLeng = 0;
