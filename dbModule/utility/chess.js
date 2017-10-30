@@ -223,11 +223,8 @@ var self = module.exports = {
         }
     },
     getAllNextCheckingBoard(posArr, side){
-        if (posArr[0] == '51' && posArr[2] == '62' && posArr[4] == '00' && posArr[20] == '48' && posArr[31] == '42') {
-            console.log('gere');
-        }
         let nextStepArr = [];
-        let offset = side === 'r' ? 0 : 16
+        let offset = side === 'r' ? 0 : 16;
         for (let j = offset; j < 16 + offset; j++) {
             let newBoardKeys = [];
             let i = j - offset;
@@ -262,9 +259,6 @@ var self = module.exports = {
         });
     },
     getAllNextEscapingBoard(posArr, side){
-        if (posArr[0] == '41' && posArr[2] == '62' && posArr[4] == '00' && posArr[20] == '48' && posArr[31] == '42') {
-            console.log('gere');
-        }
         let nextStepArr = [];
         let offset = side === 'r' ? 0 : 16;
         for (let j = offset; j < 16 + offset; j++) {
@@ -340,9 +334,6 @@ var self = module.exports = {
         return newArr;
     },
     isChecking(side, posArr){
-        if (posArr[27] == '60' && posArr[0] == '10' && posArr[2] == '00' && posArr[31] == '41') {
-            console.log('hehe');
-        }
         let jPos = side == 'r' ? posArr[31] : posArr[15];
         let jPosX = parseInt(jPos[0]), jPosY = parseInt(jPos[1]);
         let offset = side == 'r' ? 0 : 16;

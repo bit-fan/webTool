@@ -50,32 +50,54 @@ link(rel='stylesheet', href='/css/chess.css')
                 #chessboarddiv
 
     .col-md-5#infoDiv
+        #setupBoardDiv
+            .well.btnSetupChoice
+                label.radio-inline
+                    input.pull-left(type='radio' name='steupchoice', value='drag')
+                    | 手动
+                label.radio-inline
+                    input.pull-left(type='radio' name='steupchoice', value='boardKey')
+                    | 残局代码
+                label.radio-inline
+                    input.pull-left(type='radio' name='steupchoice', value='lib')
+                    | 残局库
 
-        #piecesListWrapper.collapse
-            div
-                .inlineBlk-group
-                    div
-                        | Please setup piece
-                    #piecesList
-            #boardLibDiv
+            #boardKeyInput.setupOptionDiv.collapse
+                label Please input board key
+                input(type='text')
+
+            #piecesListWrapper.setupOptionDiv.collapse
+                div
+                    .inlineBlk-group
+                        div
+                            | Please setup piece
+                        #piecesList
+            #boardLibDiv.setupOptionDiv.collapse
+                table.borderDouble.boardResultTable.tdborder1
+                    thead
+                        tr
+                            th #
+                            th key
+                    tbody
 
 
-        #validCheckResult.infoType.collapse
-            p
-                h3 棋局&nbsp;&nbsp;&nbsp;
-                span#boardValidText
-            p
-                | 位置重复&nbsp;&nbsp;&nbsp;
-                span#boardDuplicateValidText
-            p
-                | 非法棋子&nbsp;&nbsp;&nbsp;
-                span#boardPieceNameValidText
-            p
-                | 非法位置&nbsp;&nbsp;&nbsp;
-                span#boardPosValidText
-            p
-                | 错误数量&nbsp;&nbsp;&nbsp;
-                span#boardPieceQtyValidText
+            #validCheckResult.infoType.collapse
+                table.boardResultTable
+                    thead
+                        tr
+                            th 棋局
+                            th 位置重复
+                            th 非法棋子
+                            th 非法位置
+                            th 错误数量
+                    tbody
+                        tr
+                            td#boardValidText
+                            td#boardDuplicateValidText
+                            td#boardPieceNameValidText
+                            td#boardPosValidText
+                            td#boardPieceQtyValidText
+                button#saveBoardKey.btn save this board
         #solutionDiv.collapse
             .row.playFuncRow
                 .col-md-12
@@ -89,13 +111,11 @@ link(rel='stylesheet', href='/css/chess.css')
                         img#animateNextStep(width=30 height=30 src='../../src/img/chess/func/next-track-button.svg')
             .row
                 .col-md-7.padding5
+                    #initialBoard
                     table#stepTable.borderDouble
                 .col-md-5#stepArrContainer.collapse
                     div 另解:
                     #stepArrDiv
-#pieceCandicateDiv.collapse
-    img.pieceSize.pickPiece
-    span
 #moveStepDiv.collapse
     label.prePieceName
     label.pieceText

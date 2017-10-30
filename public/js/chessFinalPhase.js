@@ -4,7 +4,7 @@
         var mySkt;
         var curBoardTag, curPieceFolder, curPieceExt, baseData = {}, finalBoard = {},
             mouseDownFlag = false, finalBoardKey = '', pauseAnimation = false;
-        var MoveStepSpeed = 100, solutionObj = {}, dragEvtObj = {};
+        var MoveStepSpeed = 100, solutionObj = {}, dragEvtObj = {}, setupChoiceKey = '';
 
         const boardObj = {
             board0: {
@@ -186,6 +186,9 @@
                 thisPieceDom = $(evt.target).clone();
                 $('#chessboarddiv').append(thisPieceDom);
                 piece = $(evt.target).attr('pieceName');
+                if (piece == 'remove') {
+                    pickType = 'remove';
+                }
                 // $('#chessboarddiv .blink').removeClass('blink');
                 // if (baseData.availPieceByPiece[piece]) {
                 //     baseData.availPieceByPiece[piece].forEach(label => {
@@ -225,37 +228,35 @@
             });
             setDragHandler('setupPiece', 'final', function (ev) {
                 if (hoverX && hoverY > -1 && !finalBoard[hoverX + '' + hoverY]) {
-                    if (pickType == 'add') {
-                        let availableCount = parseInt($('#pickPiece' + piece).text());
-                        if (availableCount > 0) {
+                    if (pickType == 'remove') {
+                        finalBoard[hoverX + '' + hoverY] = undefined;
+                        $("#chessboarddiv .boardPos" + hoverX + hoverY).find('img')
+                            .removeAttr('dragtype')
+                            .attr('src', null)
+                            .removeAttr('pieceName')
+                            .removeClass('pickPiece');
+                    } else {
+                        if (pickType == 'add') {
+                            // let availableCount = parseInt($('#pickPiece' + piece).text());
+                            // if (availableCount > 0) {
                             finalBoard[hoverX + '' + hoverY] = piece;
-                            $('#pickPiece' + piece).text(availableCount - 1);
+                            // $('#pickPiece' + piece).text(availableCount - 1);
+                            // }
+                        } else if (pickType == 'move') {
+                            $(oriDom).removeAttr('src').removeClass('pickPiece');
+                            let srcX = $(oriDom).parent().attr('col');
+                            let srcY = $(oriDom).parent().attr('row');
+                            delete finalBoard[srcX + '' + srcY];
+                            finalBoard[hoverX + '' + hoverY] = piece;
                         }
-                    } else if (pickType == 'move') {
-                        $(oriDom).removeAttr('src').removeClass('pickPiece');
-                        let srcX = $(oriDom).parent().attr('col');
-                        let srcY = $(oriDom).parent().attr('row');
-                        delete finalBoard[srcX + '' + srcY];
-                        finalBoard[hoverX + '' + hoverY] = piece;
+                        $("#chessboarddiv .boardPos" + hoverX + hoverY).find('img')
+                            .attr('dragtype', 'setupPiece')
+                            .attr('src', getPieceImgStr(piece))
+                            .attr('pieceName', piece)
+                            .addClass('pickPiece');
                     }
-                    $("#chessboarddiv .boardPos" + hoverX + hoverY).find('img')
-                        .attr('dragtype', 'setupPiece')
-                        .attr('src', getPieceImgStr(piece))
-                        .attr('pieceName', piece)
-                        .addClass('pickPiece');
                 }
-                // $("#chessboarddiv .piececandidate").each(function () {
-                //     let x = $(this).attr('col');
-                //     let y = $(this).attr('row');
-                //     let isSet = finalBoard[x + '' + y] || null;
-                //     console.log('set', isSet);
-                //     if (isSet) {
-                //         $(this).find('img').removeClass('fadeback').removeClass('blink').attr('src', baseData[isSet].img)
-                //     }
-                //     else {
-                //         $(this).find('img').removeClass('fadeback').removeClass('blink').removeAttr('src');
-                //     }
-                // })
+
                 $('#chessboarddiv .fadeback').removeClass('fadeback');
                 $(thisPieceDom).remove();
                 console.log('final', finalBoard);
@@ -263,6 +264,7 @@
                     console.log('res', resData);
                     finalBoardKey = resData.boardKey;
                     displayInfo('validCheck', resData);
+                    // drawBoardKey(finalBoardKey);
                 }, failData => {
                     console.log(failData);
                     // setLoading(true, failData.code || 'Error');
@@ -271,7 +273,7 @@
 
         }
 
-        function resetSetupBoard() {
+        function resetPieceListDiv() {
             finalBoard = {};
             let row1 = $('<div>').attr('id', 'piecerow1');
             let row2 = $('<div>').attr('id', 'piecerow2');
@@ -283,18 +285,22 @@
                         src: getPieceImgStr(color + piece),
                         class: "pieceSize pickPiece"
                     }).attr('pieceName', color + piece).attr('dragType', 'setupPiece');
-                    let pickPieceCout = $("<span>", {
-                        id: "pickPiece" + color + piece
-                    }).text(baseData[color + piece].maxCount);
-                    nowDiv.append(pieceDiv).append(pickPieceCout);
+                    // let pickPieceCout = $("<span>", {
+                    //     id: "pickPiece" + color + piece
+                    // }).text(baseData[color + piece].maxCount);
+                    nowDiv.append(pieceDiv);//.append(pickPieceCout);
                 })
             })
+            row1.append($("<img>", {
+                    src: '../../src/img/chess/func/red-times.svg',
+                    class: "pieceSize pickPiece"
+                }).attr('pieceName', 'remove').attr('dragType', 'setupPiece')
+            )
             $('#piecesList').html('').append(row1).append(row2);
         }
 
         function initBoardPiecePos() {
             $('#chessboarddiv').find('img').each(function () {
-                console.log('$(this)', $(this));
                 $(this).parent().empty().append('<img class="pieceSize">');
             });
 
@@ -314,7 +320,9 @@
         }
 
         function initSetupBoard() {
-            resetSetupBoard();
+            $('#setupBoardDiv').removeClass('collapse');
+            $('#solutionDiv').addClass('collapse');
+
             initBoardPiecePos();
             setDragEvt();
         }
@@ -346,23 +354,26 @@
                 $('#validCheckResult').removeClass('collapse');
                 $('#solutionDiv').addClass('collapse');
                 $('#boardValidText').html(srcObj.isValid ? "合法" : "非法");
-                $('#boardDuplicateValidText').html(srcObj.error.duplicatePos.length);
-                $('#boardPosValidText').html(srcObj.error.invalidPos.length);
-                $('#boardPieceNameValidText').html(srcObj.error.invalidPiece.length);
-                if (srcObj.error.invalidQty.length > 0) {
-                    $('#boardPieceQtyValidText').html('');
-                    srcObj.error.invalidQty.forEach(name => {
-                        $('#boardPieceQtyValidText').append($('<img>', {
-                            src: getPieceImgStr(name),
-                            class: 'pieceSize'
-                        }));
-                    })
-                } else {
-                    $('#boardPieceQtyValidText').html('0');
-                }
+                $('#boardDuplicateValidText').html(srcObj.error.duplicatePos.join(','));
+                $('#boardPosValidText').html(srcObj.error.invalidPos.join(','));
+                $('#boardPieceNameValidText').html(srcObj.error.invalidPiece.join(','));
+                // if (srcObj.error.invalidQty.length > 0) {
+                $('#boardPieceQtyValidText').html('');
+                srcObj.error.invalidQty.forEach(name => {
+                    $('#boardPieceQtyValidText').append($('<img>', {
+                        src: getPieceImgStr(name),
+                        class: 'pieceSize'
+                    }));
+                })
+                // if(srcObj.isValid){
+                $('#saveBoardKey').toggleClass('disabled', !srcObj.isValid);
+                // }
+                // } else {
+                //     $('#boardPieceQtyValidText').html('0');
+                // }
 
             } else if (type == 'solution') {
-                $('#validCheckResult').addClass('collapse');
+                $('#setupBoardDiv').addClass('collapse');
                 $('#solutionDiv').removeClass('collapse');
                 // $('#solutionDiv').html('');
                 let nowKey = srcObj.startKey;
@@ -551,9 +562,14 @@
                 stepObj: srcObj.steps,
                 maxStep: srcObj.maxSolLength
             }
+            let $homeBoard = $('#initialBoard');
+            $homeBoard.html('').append($('<a>')
+                .addClass('stepText')
+                .attr('turn', -1)
+                .text('初始局面'));
             let $stepTable = $div.find('#stepTable');
             $stepTable.html('');
-            let tdTemplate = $('#sampleStepDiv');
+            // let tdTemplate = $('#sampleStepDiv');
 
             for (let i = 0; i < srcObj.maxSolLength / 2; i++) {
                 let newTr = $('<tr>');
@@ -579,6 +595,7 @@
             $stepTable.append($stepTable);
 
             drawFromSolStep(solutionObj, 0);
+            drawBoardKey(finalBoardKey);
             return solutionObj;
         }
 
@@ -634,6 +651,53 @@
             }
 
 
+        }
+
+        function showLibKeys(libData) {
+            console.log(libData);
+            let $tbody = $('#boardLibDiv tbody');
+            $tbody.html('');
+            libData.forEach((key, idx) => {
+                let $tr = $('<tr>');
+                let $key = $('<td>', {
+                    class: 'libKey'
+                }).attr('key', key)
+                $key.append($('<a>').text('lib key ' + idx));
+                $tr.append($('<td>').text(idx));
+                $tr.append($key);
+
+
+                $tbody.append($tr);
+            })
+        }
+
+        function drawSetupChoiceTab() {
+            $(".setupOptionDiv").addClass('collapse');
+            $("#validCheckResult").addClass('collapse');
+            switch (setupChoiceKey) {
+                case 'drag':
+                    $('#piecesListWrapper').removeClass('collapse');
+                    resetPieceListDiv();
+                    break;
+                case 'boardKey':
+                    $('#boardKeyInput').removeClass('collapse');
+                    break;
+                case 'lib':
+                    $('#boardLibDiv').removeClass('collapse');
+                    getBoardKeyLib();
+                    break;
+
+            }
+        }
+
+        function getBoardKeyLib() {
+            let para = {type: 'get'};
+            mySkt.send('chessBoardKeyLib', para, resData => {
+                console.log('res', resData);
+                showLibKeys(resData);
+            }, failData => {
+                console.log(failData);
+            })
         }
 
         function drawBoardKey(boardKey, callback) {
@@ -713,6 +777,10 @@
                 })
                 $('#infoDiv').on('click', '.stepText', function (evt) {
                     const turnId = $(this).attr('turn');
+                    if (turnId == -1) {
+                        drawBoardKey(finalBoardKey);
+                        return true;
+                    }
                     let turnObj = solutionObj.stepArr[turnId];
                     // if (turnObj.nextArr.length > 1) {
                     showOtherStepOption(turnId, turnObj.nextArr);
@@ -770,7 +838,7 @@
                             initSetupBoard();
                             break;
                         case 'btnResetBoard':
-                            resetSetupBoard();
+                            resetPieceListDiv();
                             break;
                         case 'btnSubmitBoard':
                             submitBoard();
@@ -786,7 +854,25 @@
                     }
                     return true;
                 })
+                $('body').on('click', '#saveBoardKey', function () {
+                    let para = {type: 'add', key: finalBoardKey};
+                    mySkt.send('chessBoardKeyLib', para);
+                });
+                $('body').on('click', '.libKey', function () {
+                    let thisKey = $(this);
+                    console.log(thisKey, thisKey.attr('key'));
+                    finalBoardKey = thisKey.attr('key');
+                    drawBoardKey(finalBoardKey);
+                });
 
+                $('body').off('click', '.btnSetupChoice input');
+                $('body').on('click', '.btnSetupChoice input', function (evt) {
+                    // setTimeout(function () {
+                    setupChoiceKey = $("input[name='steupchoice']:checked").val();
+                    console.log(setupChoiceKey);
+                    drawSetupChoiceTab();
+                    // })
+                })
                 // submitBoard
                 $('#confirm').on('click', function () {
                     testPos(parseInt($('#top').val()), parseInt($('#btm').val()), parseInt($('#left').val()), parseInt($('#right').val()));

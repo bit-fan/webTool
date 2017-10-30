@@ -1,5 +1,9 @@
 const util = require('./utility/util');
 const Chess = require('./utility/chess');
+const fs = require('fs');
+const path = require('path');
+
+const filePath = path.join(__dirname, '..', 'dataFile', 'chess', 'chessBoardList.txt');
 
 var local = {
     getSolution(solObj, step, checkKey){
@@ -17,6 +21,10 @@ var local = {
 
             let thisBoardKey = checkKey[0], curRound = thisBoardKey[0];
             let thisBoardObj = solObj.boardList[thisBoardKey];
+            // if (thisBoardObj.nextListed && thisBoardObj.from.length == 0) {
+            //     checkKey.splice(0, 1);
+            //     continue;
+            // }
             let nextboardArr = [];
             if (thisBoardKey.startsWith('r')) {
                 nextboardArr = Chess.getAllNextCheckingBoard(solObj.boardList[thisBoardKey].posArr, 'r');
@@ -66,6 +74,19 @@ var local = {
                 }
 
                 let thisKeyObj = solObj.boardList[checkNowKey[0]];
+
+                // if (thisKeyObj.from.length == 0) {
+                //     thisKeyObj.nextAllKey.forEach(newKeyRemovethisfrom => {
+                //         let checkingObj = solObj.boardList[newKeyRemovethisfrom];
+                //         let idx = checkingObj.from.indexOf(checkNowKey[0]);
+                //         checkingObj.from.splice(idx, 1);
+                //         if (checkingObj.from.length == 0) {
+                //             checkNowKey = checkNowKey.concat(solObj.boardList[key].nextAllKey);
+                //         }
+                //     });
+                //     checkNowKey.shift();
+                //     continue;
+                // }
                 let thisRound = checkNowKey[0][0];
                 let oppoRound = thisRound == 'r' ? 'b' : 'r';
                 let newNextAllKey = [];
@@ -131,6 +152,9 @@ var local = {
                         let fromKeyArr = solObj.boardList[key].from;
                         let removeIdx = fromKeyArr.indexOf(key);
                         fromKeyArr.splice(removeIdx, 1);
+                        // if (fromKeyArr.length == 0) {
+                        //     checkNowKey = checkNowKey.concat(solObj.boardList[key].nextAllKey);
+                        // }
                     })
                 }
                 if (hasChange) {
@@ -230,6 +254,31 @@ var socket = {
         return Chess.isBoardObjValid(req);
     },
     //chess key
+    // chessGetBoardKeyLib: function (para) {
+    //
+    // },
+    chessBoardKeyLib: function (para) {
+        switch (para.type) {
+            case 'get':
+                return new Promise((resolve, reject) => {
+                    fs.readFile(filePath, function (err, data) {
+                        console.log('err', err);
+                        if (data) {
+                            resolve(data.toString().split('#').filter(a => a));
+                        }
+                        reject('err');
+                    });
+                })
+                break;
+            case 'add':
+                fs.appendFile(filePath, para.key + '#', function (err) {
+                    if (err) throw err;
+                    console.log('Saved!');
+                });
+                break;
+
+        }
+    },
     chessStartBoard: function (reqKey) {
         let solObj = {
             startKey: reqKey,

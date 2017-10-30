@@ -2,6 +2,16 @@
     outline: blue solid 1px;
 }
 
+.boardResultTable th,
+.boardResultTable td {
+    text-align: center;
+    padding: 5px;
+}
+
+.boardResultTable {
+    width: 100%;
+}
+
 #chessContainer {
     position: relative;
 }
@@ -80,7 +90,7 @@ img:not([src]) {
     padding: 15px;
 }
 
-#infoDiv > .infoType {
+#validCheckResult {
     padding: 5px;
     outline: red solid 1px;
 }
@@ -112,6 +122,10 @@ img:not([src]) {
 
 #stepArrContainer {
     border: double blue 3px;
+}
+
+.tdborder1 td, .tdborder1 th {
+    border: solid 1px;
 }
 
 /*#hideboarddiv {*/
