@@ -5,12 +5,17 @@ const path = require('path');
 
 const filePath = path.join(__dirname, '..', 'dataFile', 'chess', 'chessBoardList.txt');
 
+var BoardProcessStatus = {};
 var local = {
+    updateBoardStatus(key, val){
+        BoardProcessStatus[key] = val;
+    },
     getSolution(skt, solObj, step, checkKey){
         skt.emit('_chessBoardStatus', {
             status: 200,
             data: 'checking turn ' + step + ' ' + checkKey.length
         });
+        let totalKey = checkKey.length;
         console.log('total keys', Object.keys(solObj.boardList).length, checkKey.length, solObj.winList.length);
         if (checkKey.length == 0) {
             return solObj;
@@ -19,6 +24,7 @@ var local = {
         while (checkKey.length > 0) {
             // console.log('checkKey', checkKey);
 
+            local.updateBoardStatus(skt.id, "Solving at step " + step + " " + (checkKey.length / totalKey * 100).toFixed(1) + '%');
             let startObj = solObj.boardList[solObj.startKey];
             if (startObj.status) {
                 break;
@@ -262,6 +268,9 @@ var local = {
     }
 }
 var socket = {
+    getBoardStatus: function (para, socket) {
+        return BoardProcessStatus[socket.id];
+    },
     chessValidateBoard: function (req) {
         return Chess.isBoardObjValid(req);
     },
@@ -310,14 +319,17 @@ var socket = {
 
         solObj = local.getSolution(socket, solObj, 0, [reqKey]);
         // console.log('solObj', JSON.stringify(solObj));
+        local.updateBoardStatus(socket.id, "generating solution list.");
         let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
 
         let maxSolLeng = 0;
         solList.forEach(list => {
             maxSolLeng = Math.max(list.length, maxSolLeng);
         })
+        local.updateBoardStatus(socket.id, "Getting step data.");
         let steps = local.getStepsData(solList);
         console.log({startKey: solObj.startKey, solList: solList, steps: steps});
+        local.updateBoardStatus(socket.id, undefined);
         return {startKey: solObj.startKey, solList: solList, steps: steps, maxSolLength: maxSolLeng};//, fullObj: solObj};
     }
 }

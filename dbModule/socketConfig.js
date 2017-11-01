@@ -1,5 +1,3 @@
-const douyu = require('./douyuVideo');
-const chessFinal = require('./chessFinal');
 const Q = require('q');
 
 var funcKeyMapping = {};
@@ -10,8 +8,8 @@ function addMapping(src) {
         funcKeyMapping[key] = src[key];
     }
 }
-addMapping(douyu.socket);
-addMapping(chessFinal.socket);
+addMapping(require('./douyuVideo').socket);
+addMapping(require('./chessFinal').socket);
 
 function addSocket(socket, key) {
     socket.on(key, function (reqData) {

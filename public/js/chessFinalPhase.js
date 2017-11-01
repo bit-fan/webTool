@@ -339,17 +339,28 @@
         }
 
         function submitBoard() {
+            let solutionGot = false;
             mySkt.send('chessStartBoard', finalBoardKey, resData => {
                 console.log('res', resData);
                 console.log('res', JSON.stringify(resData));
+                solutionGot = true;
                 displayInfo('solution', resData);
             }, failData => {
                 console.log(failData);
                 // setLoading(true, failData.code || 'Error');
             })
-            mySkt.on('_chessBoardStatus', resData=>{
-                console.log('res', resData);
-            });
+            function getStatus() {
+                mySkt.send('getBoardStatus', {}, res => {
+                    console.log('status', res);
+                });
+                if (!solutionGot) {
+                    return setTimeout(function () {
+                        getStatus();
+                    }, 100);
+                }
+            }
+
+            getStatus();
         }
 
         function displayInfo(type, srcObj) {
