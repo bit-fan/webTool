@@ -338,29 +338,32 @@
             // testPiece();
         }
 
-        function submitBoard() {
-            let solutionGot = false;
-            mySkt.send('chessStartBoard', finalBoardKey, resData => {
-                console.log('res', resData);
-                console.log('res', JSON.stringify(resData));
-                solutionGot = true;
-                displayInfo('solution', resData);
-            }, failData => {
-                console.log(failData);
-                // setLoading(true, failData.code || 'Error');
-            })
-            function getStatus() {
-                mySkt.send('getBoardStatus', {}, res => {
-                    console.log('status', res);
-                });
-                if (!solutionGot) {
+        function getStatus() {
+            mySkt.send('getBoardStatus', finalBoardKey, function (resData) {
+                console.log('status', resData);
+                if (resData && resData.status === 'completed') {
+                    console.log('ok');
+                    displayInfo('solution', resData);
+                } else {
+                    console.log('not ok');
                     return setTimeout(function () {
                         getStatus();
                     }, 100);
                 }
-            }
+            });
+        }
 
-            getStatus();
+        function submitBoard() {
+            setTimeout(function () {
+                getStatus();
+            }, 0);
+            mySkt.send('chessStartBoard', finalBoardKey, function (resData) {
+                console.log('res', resData);
+                console.log('res', JSON.stringify(resData));
+            }, function (failData) {
+                console.log(failData);
+                // setLoading(true, failData.code || 'Error');
+            })
         }
 
         function displayInfo(type, srcObj) {

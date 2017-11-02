@@ -6,15 +6,57 @@ const path = require('path');
 const filePath = path.join(__dirname, '..', 'dataFile', 'chess', 'chessBoardList.txt');
 
 var BoardProcessStatus = {};
+var boardResult = {};
 var local = {
+    startBoardthread(reqKey, socket){
+        if (boardResult[reqKey].status == 'completed') {
+            return;
+        }
+        let solObj = {
+            startKey: reqKey,
+            boardList: {},
+            winList: [],
+            maxNumSolution: 1
+        };
+        solObj.boardList[reqKey] = {
+            posArr: Chess.getPosArrFromKey(reqKey),
+            step: 0,
+            from: [],
+            nextListed: false,
+            nextAllKey: [],
+            nextWinKey: [],
+            nextLoseKey: []
+        };
+        solObj = local.getSolution(socket, solObj, 0, [reqKey]);
+        // console.log('solObj', JSON.stringify(solObj));
+        local.updateBoardStatus(reqKey, "generating solution list.");
+        let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
+
+        let maxSolLeng = 0;
+        solList.forEach(list => {
+            maxSolLeng = Math.max(list.length, maxSolLeng);
+        })
+        local.updateBoardStatus(reqKey, "Getting step data.");
+        let steps = local.getStepsData(solList);
+        console.log({startKey: solObj.startKey, solList: solList, steps: steps});
+        boardResult[reqKey] = {
+            status: 'completed',
+            startKey: reqKey,
+            solList: solList,
+            steps: steps,
+            maxSolLength: maxSolLeng
+        };
+        // return {startKey: solObj.startKey, solList: solList, steps: steps, maxSolLength: maxSolLeng};//, fullObj: solObj};
+
+    },
     updateBoardStatus(key, val){
-        BoardProcessStatus[key] = val;
+        boardResult[key].status = val;
     },
     getSolution(skt, solObj, step, checkKey){
-        skt.emit('_chessBoardStatus', {
-            status: 200,
-            data: 'checking turn ' + step + ' ' + checkKey.length
-        });
+        // skt.emit('_chessBoardStatus', {
+        //     status: 200,
+        //     data: 'checking turn ' + step + ' ' + checkKey.length
+        // });
         let totalKey = checkKey.length;
         console.log('total keys', Object.keys(solObj.boardList).length, checkKey.length, solObj.winList.length);
         if (checkKey.length == 0) {
@@ -24,7 +66,7 @@ var local = {
         while (checkKey.length > 0) {
             // console.log('checkKey', checkKey);
 
-            local.updateBoardStatus(skt.id, "Solving at step " + step + " " + (checkKey.length / totalKey * 100).toFixed(1) + '%');
+            local.updateBoardStatus(solObj.startKey, "Solving at step " + step + " " + (checkKey.length / totalKey * 100).toFixed(1) + '%');
             let startObj = solObj.boardList[solObj.startKey];
             if (startObj.status) {
                 break;
@@ -268,8 +310,8 @@ var local = {
     }
 }
 var socket = {
-    getBoardStatus: function (para, socket) {
-        return BoardProcessStatus[socket.id];
+    getBoardStatus: function (boardKey, socket) {
+        return boardResult[boardKey];
     },
     chessValidateBoard: function (req) {
         return Chess.isBoardObjValid(req);
@@ -301,36 +343,14 @@ var socket = {
         }
     },
     chessStartBoard: function (reqKey, socket) {
-        let solObj = {
-            startKey: reqKey,
-            boardList: {},
-            winList: [],
-            maxNumSolution: 1
-        };
-        solObj.boardList[reqKey] = {
-            posArr: Chess.getPosArrFromKey(reqKey),
-            step: 0,
-            from: [],
-            nextListed: false,
-            nextAllKey: [],
-            nextWinKey: [],
-            nextLoseKey: []
-        }
+        boardResult[reqKey] = boardResult[reqKey] || {
+                status: 'started'
+            };
 
-        solObj = local.getSolution(socket, solObj, 0, [reqKey]);
-        // console.log('solObj', JSON.stringify(solObj));
-        local.updateBoardStatus(socket.id, "generating solution list.");
-        let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
-
-        let maxSolLeng = 0;
-        solList.forEach(list => {
-            maxSolLeng = Math.max(list.length, maxSolLeng);
-        })
-        local.updateBoardStatus(socket.id, "Getting step data.");
-        let steps = local.getStepsData(solList);
-        console.log({startKey: solObj.startKey, solList: solList, steps: steps});
-        local.updateBoardStatus(socket.id, undefined);
-        return {startKey: solObj.startKey, solList: solList, steps: steps, maxSolLength: maxSolLeng};//, fullObj: solObj};
+        setTimeout(function () {
+            local.startBoardthread(reqKey, socket)
+        });
+        return "working";
     }
 }
 module.exports = {func: local, socket: socket}
