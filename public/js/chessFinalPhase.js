@@ -342,21 +342,17 @@
             mySkt.send('getBoardStatus', finalBoardKey, function (resData) {
                 console.log('status', resData);
                 if (resData && resData.status === 'completed') {
-                    console.log('ok');
                     displayInfo('solution', resData);
                 } else {
-                    console.log('not ok');
                     return setTimeout(function () {
                         getStatus();
-                    }, 100);
+                    }, 300);
                 }
             });
         }
 
         function submitBoard() {
-            setTimeout(function () {
-                getStatus();
-            }, 0);
+            getStatus();
             mySkt.send('chessStartBoard', finalBoardKey, function (resData) {
                 console.log('res', resData);
                 console.log('res', JSON.stringify(resData));

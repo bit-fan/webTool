@@ -6,7 +6,6 @@ mySocket.prototype.send = function (key, data, success, fail) {
     data = data || {};
     this.socket.emit(key, data);
     this.socket.once('_' + key, function (a) {
-        console.log('heard', '_' + key, a);
         if (a.status == 200) {
             success ? success.call(this, a.data) : '';
         } else {

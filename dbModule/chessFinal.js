@@ -5,13 +5,49 @@ const path = require('path');
 
 const filePath = path.join(__dirname, '..', 'dataFile', 'chess', 'chessBoardList.txt');
 
-var BoardProcessStatus = {};
+var allProcess = [];
 var boardResult = {};
+
 var local = {
-    startBoardthread(reqKey, socket){
-        if (boardResult[reqKey].status == 'completed') {
-            return;
-        }
+    startBoardthread(reqKey){
+        boardResult[reqKey].startKey = reqKey;
+        boardResult[reqKey].maxSolLength = 0;
+        boardResult[reqKey].solList = [];
+        allProcess[reqKey].on('message', data => {
+            // console.log('herard data', data);
+            let content = data.data;
+            switch (data.type) {
+                case 'boardStatus':
+                    local.updateBoardStatus(reqKey, content.status);
+                    break;
+                case 'solutionCompleted':
+                    local.updateBoardStatus(reqKey, 'getting solution list');
+                    allProcess[reqKey].send({type: 'generateSolutionList', data: content})
+                    break;
+                case 'solutionListCompleted':
+                    local.updateBoardStatus(reqKey, 'getting step data');
+                    content.forEach(list => {
+                        boardResult[reqKey].maxSolLength = Math.max(list.length, boardResult[reqKey].maxSolLength);
+                    })
+                    console.log('solList', content);
+                    boardResult[reqKey].solList = content;
+                    allProcess[reqKey].send({type: 'getStepData', data: content})
+                    break;
+                case 'stepDataCompleted':
+                    boardResult[reqKey].status = 'completed';
+                    boardResult[reqKey].steps = content;
+                    // local.updateBoardStatus(reqKey, {
+                    //     status: 'completed',
+                    //     startKey: reqKey,
+                    //     solList: boardResult[reqKey].solList,
+                    //     steps: boardResult[reqKey].steps,
+                    //     maxSolLength: boardResult[reqKey].maxSolLeng
+                    // });
+                    allProcess[reqKey].kill();
+                    // return {startKey: solObj.startKey, solList: solList, steps: steps, maxSolLength: maxSolLeng};//, fullObj: solObj};
+                    break;
+            }
+        });
         let solObj = {
             startKey: reqKey,
             boardList: {},
@@ -27,40 +63,38 @@ var local = {
             nextWinKey: [],
             nextLoseKey: []
         };
-        solObj = local.getSolution(socket, solObj, 0, [reqKey]);
-        // console.log('solObj', JSON.stringify(solObj));
-        local.updateBoardStatus(reqKey, "generating solution list.");
-        let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
-
-        let maxSolLeng = 0;
-        solList.forEach(list => {
-            maxSolLeng = Math.max(list.length, maxSolLeng);
-        })
-        local.updateBoardStatus(reqKey, "Getting step data.");
-        let steps = local.getStepsData(solList);
-        console.log({startKey: solObj.startKey, solList: solList, steps: steps});
-        boardResult[reqKey] = {
-            status: 'completed',
-            startKey: reqKey,
-            solList: solList,
-            steps: steps,
-            maxSolLength: maxSolLeng
-        };
+        allProcess[reqKey].send({type: 'getSolution', solObj: solObj, boardKey: reqKey});
+        // local.updateBoardStatus(reqKey, "generating solution list.");
+        // local.getSolution(null, solObj, 0, [reqKey], function (solObj) {
+        //     // console.log('solObj', JSON.stringify(solObj));
+        //     let solList = local.generateSolutionList(solObj, [[solObj.startKey]]);
+        //
+        //     let maxSolLeng = 0;
+        //     solList.forEach(list => {
+        //         maxSolLeng = Math.max(list.length, maxSolLeng);
+        //     })
+        //     local.updateBoardStatus(reqKey, "Getting step data.");
+        //     let steps = local.getStepsData(solList);
+        //     console.log({startKey: solObj.startKey, solList: solList, steps: steps});
+        //     boardResult[reqKey] = {
+        //         status: 'completed',
+        //         startKey: reqKey,
+        //         solList: solList,
+        //         steps: steps,
+        //         maxSolLength: maxSolLeng
+        //     };
+        // });
         // return {startKey: solObj.startKey, solList: solList, steps: steps, maxSolLength: maxSolLeng};//, fullObj: solObj};
 
     },
     updateBoardStatus(key, val){
         boardResult[key].status = val;
     },
-    getSolution(skt, solObj, step, checkKey){
-        // skt.emit('_chessBoardStatus', {
-        //     status: 200,
-        //     data: 'checking turn ' + step + ' ' + checkKey.length
-        // });
+    getSolution(skt, solObj, step, checkKey, callback){
         let totalKey = checkKey.length;
         console.log('total keys', Object.keys(solObj.boardList).length, checkKey.length, solObj.winList.length);
         if (checkKey.length == 0) {
-            return solObj;
+            return callback(solObj);
         }
         let checkNowKey = [], nextCheckKey = [];
         while (checkKey.length > 0) {
@@ -69,7 +103,7 @@ var local = {
             local.updateBoardStatus(solObj.startKey, "Solving at step " + step + " " + (checkKey.length / totalKey * 100).toFixed(1) + '%');
             let startObj = solObj.boardList[solObj.startKey];
             if (startObj.status) {
-                break;
+                return callback(solObj);
             }
 
             let thisBoardKey = checkKey[0], curRound = thisBoardKey[0];
@@ -124,7 +158,7 @@ var local = {
                 // console.log('checkNowKey', checkNowKey);
                 let startObj = solObj.boardList[solObj.startKey];
                 if (startObj.status) {
-                    break;
+                    return callback(solObj);
                 }
 
                 let thisKeyObj = solObj.boardList[checkNowKey[0]];
@@ -224,7 +258,7 @@ var local = {
                 checkNowKey.shift();
             }
         }
-        return local.getSolution(skt, solObj, step + 1, nextCheckKey);
+        return local.getSolution(skt, solObj, step + 1, nextCheckKey, callback)
     },
     generateSolutionList(solObj, solList){
         let appendArr = [];
@@ -311,15 +345,16 @@ var local = {
 }
 var socket = {
     getBoardStatus: function (boardKey, socket) {
-        return boardResult[boardKey];
+        let obj = boardResult[boardKey] || {};
+        if (obj.status == 'completed') {
+            return obj;
+        } else {
+            return obj.status;
+        }
     },
     chessValidateBoard: function (req) {
         return Chess.isBoardObjValid(req);
     },
-    //chess key
-    // chessGetBoardKeyLib: function (para) {
-    //
-    // },
     chessBoardKeyLib: function (para) {
         switch (para.type) {
             case 'get':
@@ -346,10 +381,14 @@ var socket = {
         boardResult[reqKey] = boardResult[reqKey] || {
                 status: 'started'
             };
+        if (boardResult[reqKey].status != 'completed') {
+            var testCp = util.createFork(path.join(__dirname, 'calcBoardProcess.js'));
+            if (testCp.success) {
+                allProcess[reqKey] = testCp.cp;
+                local.startBoardthread(reqKey, reqKey);
+            }
+        }
 
-        setTimeout(function () {
-            local.startBoardthread(reqKey, socket)
-        });
         return "working";
     }
 }

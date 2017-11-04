@@ -1,9 +1,13 @@
 const http = require('http');
 const https = require('https');
 const cheerio = require('cheerio');
-
+const CP = require('child_process');
+const MAX_CP_COUNT = 10;
 var Q = require('q');
-
+var allProcess = {
+    cp: {},
+    cpLength: 0,
+}
 
 module.exports = {
     getSite: function (protocol, addr, path, paraObj) {
@@ -92,5 +96,22 @@ module.exports = {
         let newArr = Array.from(src);
         newArr[idx] = val;
         return newArr;
+    },
+    createFork(path, arg, option){
+        if (allProcess.cpLength < MAX_CP_COUNT) {
+            var newCp = CP.fork(path, arg, option);
+            allProcess.cp[newCp.pid] = newCp;
+            allProcess.cpLength++;
+            return {
+                success: true,
+                cp: newCp
+            }
+        } else {
+            return {
+                success: false
+            }
+        }
+
+
     }
 }
