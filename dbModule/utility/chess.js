@@ -222,7 +222,7 @@ var self = module.exports = {
             isValid: allValid
         }
     },
-    getAllNextCheckingBoard(posArr, side){
+    getAllNextBoard(posArr, side){
         let nextStepArr = [];
         let offset = side === 'r' ? 0 : 16;
         for (let j = offset; j < 16 + offset; j++) {
@@ -251,6 +251,13 @@ var self = module.exports = {
             }
             nextStepArr = nextStepArr.concat(newBoardKeys);
         }
+        let oppoSide = side == 'r' ? 'b' : 'r';
+        return nextStepArr.filter(newPosArr => {
+            return !self.isChecking(oppoSide, newPosArr);
+        });
+    },
+    getAllNextCheckingBoard(posArr, side){
+        let nextStepArr = self.getAllNextBoard(posArr, side);
         // return nextStepArr;
         return nextStepArr.filter(posArr => {
             // console.log('nextPos', posArr.join(''));
@@ -591,7 +598,7 @@ var self = module.exports = {
             pos2 = diffKey2.slice(0, 2);
             fixedPos = diffKey1.slice(2);
         }
-        console.log(key1, key2, pieceName, diffKey1, diffKey2, pos1, pos2);
+        // console.log(key1, key2, pieceName, diffKey1, diffKey2, pos1, pos2);
 
         if (pos1[0] == pos2[0]) {
             newPos = Math.abs(parseInt(pos1[1]) - parseInt(pos2[1]));
@@ -617,6 +624,15 @@ var self = module.exports = {
                 oriPos = k1[0] == 'b' ? pos1[0] : (10 - parseInt(pos1[0]));
             }
 
+        } else {
+            if (diffKey1[0] == diffKey1[2]) {
+                //same vertical line
+                let changePiece = pos1[1] > fixedPos[1] ? 1 : -1;
+                let multi = k1[0] == 'b' ? 1 : -1;
+                oriPos = changePiece * multi > 0 ? 'front' : 'back';
+            } else {
+                oriPos = k1[0] == 'b' ? pos1[0] : (10 - parseInt(pos1[0]));
+            }
         }
 
         return {pieceName, oriPos, direction, newPos, pos1, pos2};

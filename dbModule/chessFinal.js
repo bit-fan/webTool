@@ -29,7 +29,6 @@ var local = {
                     content.forEach(list => {
                         boardResult[reqKey].maxSolLength = Math.max(list.length, boardResult[reqKey].maxSolLength);
                     })
-                    console.log('solList', content);
                     boardResult[reqKey].solList = content;
                     allProcess[reqKey].send({type: 'getStepData', data: content})
                     break;

@@ -340,22 +340,27 @@
 
         function getStatus() {
             mySkt.send('getBoardStatus', finalBoardKey, function (resData) {
+
                 console.log('status', resData);
                 if (resData && resData.status === 'completed') {
+                    $('#boardStatus').html('');
                     displayInfo('solution', resData);
+                } else if (!resData) {
                 } else {
+                    $('#boardStatus').html(resData + '...');
                     return setTimeout(function () {
                         getStatus();
-                    }, 300);
+                    }, 100);
                 }
             });
         }
 
         function submitBoard() {
-            getStatus();
             mySkt.send('chessStartBoard', finalBoardKey, function (resData) {
                 console.log('res', resData);
                 console.log('res', JSON.stringify(resData));
+                getStatus();
+
             }, function (failData) {
                 console.log(failData);
                 // setLoading(true, failData.code || 'Error');
