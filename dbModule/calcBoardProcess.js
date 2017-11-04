@@ -31,15 +31,11 @@ function getSolution(solObj, step, checkKey) {
     }
     let checkNowKey = [], nextCheckKey = [], remarkObj = {}, skipped = 0;
     while (checkKey.length > 0) {
-        // console.log('checkKey', checkKey);
-
-        // local.updateBoardStatus(solObj.startKey, "Solving at step " + step + " " + (checkKey.length / totalKey * 100).toFixed(1) + '%');
-
         process.send({
             type: 'boardStatus',
             data: {
                 key: solObj.startKey,
-                status: "Solving at step " + step + " " + (100 - checkKey.length / totalKey * 100).toFixed(1) + '%'
+                status: "Solving at step " + step + " " + (100 - checkKey.length / totalKey * 100).toFixed(1) + '% ' + totalKey
             }
         });
 
@@ -49,11 +45,10 @@ function getSolution(solObj, step, checkKey) {
             return;
         }
 
-        let thisBoardKey = checkKey[0], curRound = thisBoardKey[0];
+        let thisBoardKey = checkKey.shift(), curRound = thisBoardKey[0];
         let thisBoardObj = solObj.boardList[thisBoardKey];
         if (thisBoardKey != solObj.startKey && thisBoardObj.from.length == 0) {
             skipped++;
-            checkKey.shift();
             continue;
         }
         let nextboardArr = [];
@@ -106,12 +101,18 @@ function getSolution(solObj, step, checkKey) {
                         nextWinKey: [],
                         nextLoseKey: []
                     }
-                    nextCheckKey.push(newKey)
+                    // if (Chess.isChecking(curRound, newKey) || Chess.isChecking(getOppoSide(curRound), newKey)) {
+                    //     checkKey.unshift(newKey);
+                    //     totalKey++;
+                    // } else {
+                        nextCheckKey.push(newKey);
+                    // }
+
                 }
                 solObj.boardList[thisBoardKey].nextAllKey.push(newKey);
             })
         }
-        checkKey.splice(0, 1); //this key done
+        // checkKey.splice(0, 1); //this key done
 
         //check whether have immediate checkings, checknowKey is the arr of keys where  the next step is an end
 
