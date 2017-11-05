@@ -91,6 +91,8 @@ function getSolution(solObj, step, checkKey) {
                     // if(testBoardObj.nextListed )
                     //todo: when to add from
                     solObj.boardList[newKey].from.push(thisBoardKey);
+                    checkNowKey.push(newKey);
+                    remarkObj[newKey] = 'win';
                 } else {
                     solObj.boardList[newKey] = {
                         posArr: posArr,
@@ -188,7 +190,7 @@ function getSolution(solObj, step, checkKey) {
                         }
                         thisKeyObj.status = oppoRound + 'Win';
                     } else {
-                        console.log('no sol, strange');
+                        // console.log('no sol, strange');
                     }
                 }
                 if (thisKeyObj.nextWinKey.length > 0) {
@@ -220,7 +222,6 @@ function getSolution(solObj, step, checkKey) {
                         checkNowKey = checkNowKey.concat(key);
                         remarkObj[key] = 'win';
                     });
-
                 }
             } else if (remarkObj[checkNowKey[0]] == 'next') {
                 if (thisKeyObj.from.length == 0) {
@@ -236,7 +237,6 @@ function getSolution(solObj, step, checkKey) {
                         }
                     })
                 }
-
             }
 
             checkNowKey.shift();

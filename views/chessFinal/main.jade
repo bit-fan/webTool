@@ -111,13 +111,17 @@ link(rel='stylesheet', href='/css/chess.css')
                         img#animatePauseStep(width=30 height=30 src='../../src/img/chess/func/pause-button.svg')
                     //a
                         img#animateNextStep(width=30 height=30 src='../../src/img/chess/func/next-track-button.svg')
+            #initialBoard
             .row
                 .col-md-7.padding5
-                    #initialBoard
                     table#stepTable.borderDouble
                 .col-md-5#stepArrContainer.collapse
                     div 另解:
                     #stepArrDiv
+        #queryBoard
+            label input board key to query
+                input#boardToQuery
+            button#startQuery start
 #moveStepDiv.collapse
     label.prePieceName
     label.pieceText

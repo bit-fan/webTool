@@ -4,7 +4,7 @@
         var mySkt;
         var curBoardTag, curPieceFolder, curPieceExt, baseData = {}, finalBoard = {},
             mouseDownFlag = false, finalBoardKey = '', pauseAnimation = false;
-        var MoveStepSpeed = 100, solutionObj = {}, dragEvtObj = {}, setupChoiceKey = '';
+        var MoveStepSpeed = 100, solutionObj = {}, dragEvtObj = {}, setupChoiceKey = '', timeStartCalc = 0;
 
         const boardObj = {
             board0: {
@@ -344,6 +344,8 @@
                 console.log('status', resData);
                 if (resData && resData.status === 'completed') {
                     $('#boardStatus').html('');
+                    let useTime = new Date().getTime() - timeStartCalc;
+                    console.log('time taken' + useTime / 1000 + 's');
                     displayInfo('solution', resData);
                 } else if (!resData) {
                 } else {
@@ -356,6 +358,7 @@
         }
 
         function submitBoard() {
+            timeStartCalc = new Date().getTime();
             mySkt.send('chessStartBoard', finalBoardKey, function (resData) {
                 console.log('res', resData);
                 console.log('res', JSON.stringify(resData));
@@ -372,9 +375,9 @@
                 $('#validCheckResult').removeClass('collapse');
                 $('#solutionDiv').addClass('collapse');
                 $('#boardValidText').html(srcObj.isValid ? "合法" : "非法");
-                $('#boardDuplicateValidText').html(srcObj.error.duplicatePos.join(','));
-                $('#boardPosValidText').html(srcObj.error.invalidPos.join(','));
-                $('#boardPieceNameValidText').html(srcObj.error.invalidPiece.join(','));
+                $('#boardDuplicateValidText').html(srcObj.error.duplicatePos.join(',') || '无');
+                $('#boardPosValidText').html(srcObj.error.invalidPos.join(',') || '无');
+                $('#boardPieceNameValidText').html(srcObj.error.invalidPiece.join(',') || '无');
                 // if (srcObj.error.invalidQty.length > 0) {
                 $('#boardPieceQtyValidText').html('');
                 srcObj.error.invalidQty.forEach(name => {
@@ -896,6 +899,12 @@
                 })
                 $('#pieceType').trigger('change');
                 $('#boardType').trigger('change');
+                $('body').on('click', '#startQuery', function () {
+                    let queryKey = $('#boardToQuery').val();
+                    mySkt.send('queryBoard', {startKey: finalBoardKey, key: queryKey}, function (res) {
+                        console.log('qyery result', res);
+                    })
+                })
                 initDrag();
                 // initPage();
                 //get basic settings

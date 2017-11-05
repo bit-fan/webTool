@@ -22,6 +22,7 @@ var local = {
                     break;
                 case 'solutionCompleted':
                     local.updateBoardStatus(reqKey, 'getting solution list');
+                    boardResult[reqKey].solObj = content;
                     allProcess[reqKey].send({type: 'generateSolutionList', data: content})
                     break;
                 case 'solutionListCompleted':
@@ -346,7 +347,13 @@ var socket = {
     getBoardStatus: function (boardKey, socket) {
         let obj = boardResult[boardKey] || {};
         if (obj.status == 'completed') {
-            return obj;
+            return {
+                maxSolLength: obj.maxSolLength,
+                solList: obj.solList,
+                startKey: obj.startKey,
+                status: "completed",
+                steps: obj.steps
+            }
         } else {
             return obj.status;
         }
@@ -381,7 +388,10 @@ var socket = {
                 status: 'started'
             };
         if (boardResult[reqKey].status != 'completed') {
-            var testCp = util.createFork(path.join(__dirname, 'calcBoardProcess.js'));
+            var testCp = util.createFork(path.join(__dirname, 'calcBoardProcess.js'), [], {
+                silent: false,
+                execArgv: []
+            });
             if (testCp.success) {
                 allProcess[reqKey] = testCp.cp;
                 local.startBoardthread(reqKey, reqKey);
@@ -389,6 +399,14 @@ var socket = {
         }
 
         return "working";
+    },
+    queryBoard: function (para) {
+        let startKey = para.startKey, key = para.key;
+        try {
+            return boardResult[startKey].solObj.boardList[key];
+        }
+        catch (e) {
+        }
     }
 }
 module.exports = {func: local, socket: socket}
