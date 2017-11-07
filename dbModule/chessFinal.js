@@ -403,7 +403,7 @@ var socket = {
     queryBoard: function (para) {
         let startKey = para.startKey, key = para.key;
         try {
-            return boardResult[startKey].solObj.boardList[key];
+            return {checkKey: para.key, sol: boardResult[startKey].solObj.boardList[key]};
         }
         catch (e) {
         }

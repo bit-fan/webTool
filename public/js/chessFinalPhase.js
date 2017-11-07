@@ -902,8 +902,13 @@
                 $('body').on('click', '#startQuery', function () {
                     let queryKey = $('#boardToQuery').val();
                     mySkt.send('queryBoard', {startKey: finalBoardKey, key: queryKey}, function (res) {
+                        drawBoardKey(queryKey);
                         console.log('qyery result', res);
+                        $('#toShowBoards').html(res.sol.nextAllKey.map(i => i).join('<br>'));
                     })
+                })
+                $('body').on('click', '#inputBoardKeyConfirm', function () {
+                    finalBoardKey = $('#inputBoardKey').val();
                 })
                 initDrag();
                 // initPage();

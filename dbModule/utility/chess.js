@@ -387,8 +387,11 @@ var self = module.exports = {
             }
             //checkPawn
             else if (i > 5 && i < 11) {
+                if (pos == '00') {
+                    continue;
+                }
                 let pawnX = parseInt(pos[0]), pawnY = parseInt(pos[1]);
-                if (Math.pow(pawnX - jPosX, 2) + Math.pow(pawnY - jPosY, 2) !== 1) {
+                if ((Math.pow(pawnX - jPosX, 2) + Math.pow(pawnY - jPosY, 2)) !== 1) {
                     continue;
                 }
                 if (side == 'r' && pawnY == jPosY - 1) {
@@ -506,6 +509,9 @@ var self = module.exports = {
         return self.getValidNextMoveArr(pieceArr, curPos, finalArr);
     },
     getPawnNextPos(pieceArr, curPos){
+        if (curPos == '00') {
+            return [];
+        }
         let side = pieceArr.indexOf(curPos) > 15 ? 'b' : 'r';
         let curSide = parseInt(curPos[1]) > 4.5 ? 'b' : 'r';
         let forward = side === 'b' ? 1 : -1;
