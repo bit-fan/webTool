@@ -51,69 +51,72 @@ function getSolution(solObj, step, checkKey) {
             skipped++;
             continue;
         }
-        let nextboardArr = [];
+        if(!thisBoardObj.nextListed){
+            let nextboardArr = [];
 
-        //orig code
-        if (thisBoardKey.startsWith('r')) {
-            nextboardArr = Chess.getAllNextCheckingBoard(solObj.boardList[thisBoardKey].posArr, 'r');
-        } else {
-            nextboardArr = Chess.getAllNextEscapingBoard(solObj.boardList[thisBoardKey].posArr, 'b');
-        }
-
-        // if (thisBoardKey.startsWith('r')) {
-        //     nextboardArr = Chess.getAllNextBoard(solObj.boardList[thisBoardKey].posArr, 'r');
-        // } else {
-        //     nextboardArr = Chess.getAllNextBoard(solObj.boardList[thisBoardKey].posArr, 'b');
-        // }
-
-        thisBoardObj.nextListed = true;
-
-        if (nextboardArr.length === 0) {
-            if (curRound == 'r') {
-                thisBoardObj.status = 'bLastWin';
-                thisBoardObj.minWin = 1;
+            //orig code
+            if (thisBoardKey.startsWith('r')) {
+                nextboardArr = Chess.getAllNextCheckingBoard(solObj.boardList[thisBoardKey].posArr, 'r');
             } else {
-                thisBoardObj.status = 'rLastWin';
-                thisBoardObj.maxLose = 1;
-                solObj.winList.push(thisBoardKey);
+                nextboardArr = Chess.getAllNextEscapingBoard(solObj.boardList[thisBoardKey].posArr, 'b');
             }
-            //already had result, remove unneccessary checkings
-            thisBoardObj.from.forEach(key => {
-                checkNowKey = checkNowKey.concat(key);
-                remarkObj[key] = 'win';
-            });
-            // checkNowKey = checkNowKey.concat(thisBoardObj.from);
-        } else {
-            nextboardArr.forEach(posArr => {
-                let newKey = getOppoSide(curRound) + posArr.join('');
-                if (solObj.boardList[newKey]) {
-                    // let testBoardObj=solObj.boardList[newKey];
-                    // if(testBoardObj.nextListed )
-                    //todo: when to add from
-                    solObj.boardList[newKey].from.push(thisBoardKey);
-                    checkNowKey.push(newKey);
-                    remarkObj[newKey] = 'win';
-                } else {
-                    solObj.boardList[newKey] = {
-                        posArr: posArr,
-                        from: [thisBoardKey],
-                        step: thisBoardObj.step + 1,
-                        nextListed: false,
-                        nextAllKey: [],
-                        nextWinKey: [],
-                        nextLoseKey: []
-                    }
-                    // if (Chess.isChecking(curRound, newKey) || Chess.isChecking(getOppoSide(curRound), newKey)) {
-                    //     checkKey.unshift(newKey);
-                    //     totalKey++;
-                    // } else {
-                        nextCheckKey.push(newKey);
-                    // }
 
+            // if (thisBoardKey.startsWith('r')) {
+            //     nextboardArr = Chess.getAllNextBoard(solObj.boardList[thisBoardKey].posArr, 'r');
+            // } else {
+            //     nextboardArr = Chess.getAllNextBoard(solObj.boardList[thisBoardKey].posArr, 'b');
+            // }
+
+            thisBoardObj.nextListed = true;
+
+            if (nextboardArr.length === 0) {
+                if (curRound == 'r') {
+                    thisBoardObj.status = 'bLastWin';
+                    thisBoardObj.minWin = 1;
+                } else {
+                    thisBoardObj.status = 'rLastWin';
+                    thisBoardObj.maxLose = 1;
+                    solObj.winList.push(thisBoardKey);
                 }
-                solObj.boardList[thisBoardKey].nextAllKey.push(newKey);
-            })
+                //already had result, remove unneccessary checkings
+                thisBoardObj.from.forEach(key => {
+                    checkNowKey = checkNowKey.concat(key);
+                    remarkObj[key] = 'win';
+                });
+                // checkNowKey = checkNowKey.concat(thisBoardObj.from);
+            } else {
+                nextboardArr.forEach(posArr => {
+                    let newKey = getOppoSide(curRound) + posArr.join('');
+                    if (solObj.boardList[newKey]) {
+                        // let testBoardObj=solObj.boardList[newKey];
+                        // if(testBoardObj.nextListed )
+                        //todo: when to add from
+                        solObj.boardList[newKey].from.push(thisBoardKey);
+                        checkNowKey.push(newKey);
+                        remarkObj[newKey] = 'win';
+                    } else {
+                        solObj.boardList[newKey] = {
+                            posArr: posArr,
+                            from: [thisBoardKey],
+                            step: thisBoardObj.step + 1,
+                            nextListed: false,
+                            nextAllKey: [],
+                            nextWinKey: [],
+                            nextLoseKey: []
+                        }
+                        // if (Chess.isChecking(curRound, newKey) || Chess.isChecking(getOppoSide(curRound), newKey)) {
+                        //     checkKey.unshift(newKey);
+                        //     totalKey++;
+                        // } else {
+                        nextCheckKey.push(newKey);
+                        // }
+
+                    }
+                    solObj.boardList[thisBoardKey].nextAllKey.push(newKey);
+                })
+            }
         }
+
         // checkKey.splice(0, 1); //this key done
 
         //check whether have immediate checkings, checknowKey is the arr of keys where  the next step is an end
