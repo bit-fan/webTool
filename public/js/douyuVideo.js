@@ -25,7 +25,7 @@
             topic_title: "题目",
             authorIcon:"作者头像"
         }
-        const filterCol=['point_id', 'video_str_duration', 'up_id', 'url', 'v_icon_text', 'is_first','tags', 'is_short', 'topic_id'];
+        const filterCol=['point_id', 'video_str_duration', 'up_id', 'url', 'v_icon_text', 'is_first','tags', 'is_short', 'topic_id','pointthumb','time_point','video_type','start_time','owner_auth_type','owner_auth_contents','show_id'];
 
         //get multiple pages
         function getMultiPage(curPageNum, newData) {
